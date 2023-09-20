@@ -1,16 +1,34 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Provider, useSelector } from "react-redux";
+import { store, persistor } from "./redux/configStore";
+import { PersistGate } from "redux-persist/integration/react";
+import { PropsUserDataRD } from "./redux/userData";
+import { BrowserRouter as Router } from "react-router-dom";
+import GlobalsStyle from "./globalsStyle/GlobalsStyle";
+
+const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <Router>
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <GlobalsStyle>
+            <App />
+          </GlobalsStyle>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </PersistGate>
+      </Provider>
+    </QueryClientProvider>
+  </Router>
 );
 
 // If you want to start measuring performance in your app, pass a function
