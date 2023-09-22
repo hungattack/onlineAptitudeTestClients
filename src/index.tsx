@@ -10,7 +10,8 @@ import { PersistGate } from "redux-persist/integration/react";
 import { PropsUserDataRD } from "./redux/userData";
 import { BrowserRouter as Router } from "react-router-dom";
 import GlobalsStyle from "./globalsStyle/GlobalsStyle";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(
@@ -24,6 +25,18 @@ root.render(
           <GlobalsStyle>
             <App />
           </GlobalsStyle>
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+          />
           <ReactQueryDevtools initialIsOpen={false} />
         </PersistGate>
       </Provider>

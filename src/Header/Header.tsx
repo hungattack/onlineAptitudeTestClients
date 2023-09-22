@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import style from "./header.module.scss";
 import { Link } from "react-router-dom";
 import Images from "../assets/images";
@@ -26,17 +26,28 @@ const Header = () => {
       ? [
           { src: "/", name: "Home" },
           { src: "/jobSeeking", name: "Job seeking" },
-          {
-            src: user?.roles.name === "admin" ? "/manager" : "/regManager/",
-            name: user?.roles.name === "admin" ? "Manager" : "Register manager",
-          },
         ]
       : [
           { src: "/", name: "Home" },
           { src: "/jobSeeking", name: "Job seeking" },
         ]
   );
-
+  useEffect(() => {
+    if (user) {
+      setMenu([
+        ...menu,
+        {
+          src: user?.roles.name === "admin" ? "/manager" : "/regManager/",
+          name: user?.roles.name === "admin" ? "Manager" : "Register manager",
+        },
+      ]);
+    } else {
+      setMenu([
+        { src: "/", name: "Home" },
+        { src: "/jobSeeking", name: "Job seeking" },
+      ]);
+    }
+  }, [user]);
   console.log(user, "user");
 
   return (

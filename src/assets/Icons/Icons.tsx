@@ -53,6 +53,7 @@ import {
   AiFillHeart,
   AiOutlineLike,
   AiOutlineLoading3Quarters,
+  AiOutlineMinus,
 } from "react-icons/ai";
 import {
   GiBurningBook,
@@ -152,3 +153,4 @@ export const AddI = () => <IoAdd />;
 export const OpenEyeI = () => <AiOutlineEye />;
 export const CloseEyeI = () => <AiOutlineEyeInvisible />;
 export const TimerI = () => <BiTimer />;
+export const MinusI = () => <AiOutlineMinus />;

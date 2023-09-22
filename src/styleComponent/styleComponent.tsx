@@ -29,3 +29,7 @@ export const Input = styled.input<{ css?: string }>`
   color: ${(props) => props.color};
   ${(props) => props.css};
 `;
+export const Textarea = styled.textarea<{ css?: string }>`
+  color: ${(props) => props.color};
+  ${(props) => props.css};
+`;

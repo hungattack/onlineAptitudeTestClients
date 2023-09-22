@@ -1,21 +1,36 @@
-import React, { useState } from "react";
-import { Div, H3, Input, P } from "../../styleComponent/styleComponent";
+import React, { ReactElement, useState } from "react";
+import {
+  Div,
+  H3,
+  Input,
+  P,
+  Textarea,
+} from "../../styleComponent/styleComponent";
 import { Space, Table, Tag } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { SettingI, TimerI } from "../../assets/Icons/Icons";
+import { toast } from "react-toastify";
 
 const Result = () => {
-  const [type, setType] = useState<boolean>(false);
+  const [type, setType] = useState<boolean>(false); // string or array
   const [showTimerType, setShowTimerType] = useState<boolean>(false);
   const [timer, setTimer] = useState<string>("Minute");
-  const [valTimer, setValTimer] = useState<string>("");
+  const [valTimer, setValTimer] = useState<string>("5");
   const [edit, setEdit] = useState<boolean>(false);
+  const [point, setPoint] = useState<string>("100");
+  const [update, setUpdate] = useState<string>(""); //for question
+  const [dataDelete, setDataDelete] = useState<string>("");
+  const [question, setQuestion] = useState<{
+    Name: string;
+    Point: number;
+    Answer: string;
+  }>({ Name: "", Answer: "", Point: 0 });
   interface DataType {
-    index: number;
+    index: number | ReactElement;
     key: string;
-    name: string;
-    answer: string;
-    point: number;
+    name: string | ReactElement;
+    answer: string | ReactElement;
+    point: number | ReactElement;
   }
   const timerData = ["Hour", "Minute", "Second"];
   const columns: ColumnsType<DataType> = [
@@ -46,18 +61,35 @@ const Result = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <P
-            css={`
-              padding: 3px 7px;
-              background-color: #4785d5;
-              border-radius: 5px;
-              color: #fff;
-              font-size: 1.3rem;
-              cursor: var(--pointer);
-            `}
-          >
-            Update
-          </P>
+          {update && record.key === update ? (
+            <P
+              css={`
+                padding: 3px 7px;
+                background-color: #4785d5;
+                border-radius: 5px;
+                color: #fff;
+                font-size: 1.3rem;
+                cursor: var(--pointer);
+              `}
+              onClick={() => setUpdate(record.key)}
+            >
+              Save
+            </P>
+          ) : (
+            <P
+              css={`
+                padding: 3px 7px;
+                background-color: #4785d5;
+                border-radius: 5px;
+                color: #fff;
+                font-size: 1.3rem;
+                cursor: var(--pointer);
+              `}
+              onClick={() => setUpdate(record.key)}
+            >
+              Update
+            </P>
+          )}
           <P
             css={`
               padding: 3px 7px;
@@ -67,6 +99,17 @@ const Result = () => {
               font-size: 1.3rem;
               cursor: var(--pointer);
             `}
+            onClick={() => {
+              const isDel = window.confirm(
+                "Are you sure you want to delete this data!"
+              );
+
+              if (isDel) {
+                const notify = () => toast("Wow so easy!");
+                notify();
+                setDataDelete(record.key);
+              }
+            }}
           >
             Delete
           </P>
@@ -121,6 +164,63 @@ const Result = () => {
       point: 50,
     },
   ];
+  const dataUpdate = data
+    .filter((d) => d.key === update)
+    .map((d) => {
+      if (d.key === update) {
+        d.name = (
+          <Textarea
+            value={question.Name}
+            onChange={(e) => setQuestion({ ...question, Name: e.target.value })}
+            css={`
+              padding: 3px;
+              width: 45px;
+              border-radius: 5px;
+              margin-right: 3px;
+            `}
+          />
+        );
+        d.answer = (
+          <Textarea
+            value={question.Answer}
+            onChange={(e) =>
+              setQuestion({ ...question, Answer: e.target.value })
+            }
+            css={`
+              padding: 3px;
+              width: 45px;
+              border-radius: 5px;
+              margin-right: 3px;
+            `}
+          />
+        );
+        d.point = (
+          <Textarea
+            value={question.Point}
+            onChange={(e) => {
+              if (!isNaN(Number(e.target.value)))
+                setQuestion({ ...question, Point: Number(e.target.value) });
+            }}
+            css={`
+              padding: 3px;
+              width: 45px;
+              border-radius: 5px;
+              margin-right: 3px;
+            `}
+          />
+        );
+      }
+      return d;
+    });
+  for (let i = 0; i < 46; i++) {
+    data.push({
+      index: i,
+      key: `3${i}`,
+      name: "Joe Black",
+      answer: "Me!",
+      point: 50,
+    });
+  }
   return (
     <Div>
       <Div
@@ -135,6 +235,7 @@ const Result = () => {
             color: #333;
             justify-content: space-evenly;
             margin: 5px 0;
+            position: relative;
             p {
               font-size: 1.4rem;
               padding: 4px 12px;
@@ -211,7 +312,7 @@ const Result = () => {
                   css="margin: 0 2px;"
                   onClick={() => setShowTimerType(!showTimerType)}
                 >
-                  {valTimer + " " + timer}
+                  {valTimer + " " + timer + (Number(valTimer) > 1 ? "s" : "")}
                 </P>
               )}
             </Div>
@@ -239,7 +340,25 @@ const Result = () => {
           `}
         >
           <H3 css="width: 100%; " size="1.4rem">
-            General knowledge ( 100 points )
+            General knowledge ({" "}
+            {edit ? (
+              <Input
+                type="text"
+                value={point}
+                onChange={(e) => {
+                  if (!isNaN(Number(e.target.value))) setPoint(e.target.value);
+                }}
+                css={`
+                  padding: 3px;
+                  width: 45px;
+                  border-radius: 5px;
+                  margin-right: 3px;
+                `}
+              />
+            ) : (
+              point
+            )}{" "}
+            points )
           </H3>
           <Div
             width="auto"
@@ -255,6 +374,19 @@ const Result = () => {
           </Div>
         </Div>
         <Div
+          width="auto"
+          css={`
+            cursor: var(--pointer);
+            color: #333;
+            padding: 5px 10px;
+            background-color: #42c0ff;
+            border-radius: 5px;
+            margin: 5px 0;
+          `}
+        >
+          <P size="1.3rem">Save</P>
+        </Div>
+        <Div
           css={`
             background-image: linear-gradient(45deg, #565656, #d0d0d0);
             border-radius: 8px;
@@ -265,6 +397,9 @@ const Result = () => {
               style={{ width: "100%" }}
               columns={columns}
               dataSource={data}
+              pagination={{
+                pageSize: 5,
+              }}
             />
           ) : (
             <Table
@@ -274,6 +409,25 @@ const Result = () => {
             />
           )}
         </Div>
+        {update && (
+          <Div
+            css={`
+              position: absolute;
+              background-color: #141414d4;
+              width: 81.9%;
+              height: 92%;
+            `}
+            onClick={() => setUpdate("")}
+          >
+            <Div onClick={(e) => e.stopPropagation()}>
+              <Table
+                style={{ width: "75%" }}
+                columns={columns}
+                dataSource={dataUpdate}
+              />
+            </Div>
+          </Div>
+        )}
       </Div>
     </Div>
   );

@@ -1,12 +1,32 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./option.module.scss";
-import { AddI } from "../../assets/Icons/Icons";
+import { AddI, MinusI } from "../../assets/Icons/Icons";
+import { useQuery } from "@tanstack/react-query";
+import cateParts from "../../API/catePartsAPI/catePartsAPI";
+import catePartsAPI from "../../API/catePartsAPI/catePartsAPI";
+import { useSelector } from "react-redux";
+import { PropsUserDataRD } from "../../redux/userData";
+import occupationAPI from "../../API/occupationAPI/occupationAPI";
+export interface PropsOccupationData {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
 const Option = () => {
+  const { user } = useSelector(
+    (state: { persistedReducer: { userData: PropsUserDataRD } }) => {
+      return state.persistedReducer.userData;
+    }
+  );
   const [jobShow, setJobShow] = useState<string>(""); // TO show the Job
   const [showQues, setShowQuest] = useState<string>(""); // to show the Option
-  const [addData, setAddData] = useState<string>("");
-  const [firstData, setFirstData] = useState<string>("");
+  const [addData, setAddData] = useState<string>(""); // add Job
+  const [firstData, setFirstData] = useState<string>(""); // data occupation
+  const [addDataCate, setAddDataCate] = useState<string>(""); // add Job
+  const [cate, setCate] = useState<string>(""); // data catePart
   const [candidate, setCandidate] = useState<{
     title: string;
     position: string[];
@@ -19,8 +39,19 @@ const Option = () => {
       "Failed candidates",
     ],
   });
-  const [data, setData] = useState<
+  const { data } = useQuery({
+    queryKey: ["JobCateParts", 1],
+    enabled: user?.id ? true : false,
+    queryFn: async () => {
+      const rr: PropsOccupationData[] = await occupationAPI.getOccupation(
+        user?.id
+      );
+      return rr;
+    },
+  });
+  const [datas, setData] = useState<
     {
+      id: string;
       title: string;
       position:
         | {
@@ -37,72 +68,104 @@ const Option = () => {
             )[];
           }[];
     }[]
-  >([
-    {
-      title: "Jobs",
-      position: [
-        {
-          title: "Developer",
-          requirements: [
-            { title: "Information" },
+  >([]);
+  useEffect(() => {
+    if (data) {
+      const items: typeof datas = [];
+      data.forEach((d) => {
+        items.push({
+          id: d.id,
+          title: "Jobs",
+          position: [
             {
-              title: "Question",
-              val: ["General knowledge", "Mathematics", "Java"],
+              title: d.name,
+              requirements: [
+                { title: "Information" },
+                {
+                  title: "Question",
+                  val: ["General knowledge", "Mathematics", "Java"],
+                },
+              ],
             },
           ],
-        },
-        {
-          title: "Marketing",
-          requirements: [
-            { title: "Information" },
-            {
-              title: "Question",
-              val: ["General knowledge", "Market research"],
-            },
-          ],
-        },
-        {
-          title: "Security Engineer",
-          requirements: [
-            { title: "Information" },
-            { title: "Question", val: ["General knowledge", "Mathematics"] },
-          ],
-        },
-      ],
-    },
-  ]);
-  const handleAdd = (title: string) => {
-    if (title === "Jobs" && firstData) {
-      setData((pre) =>
-        pre.map((t) => {
-          if (t.title === title && typeof t.position === "object") {
-            // check Does it already exist or not?
-            let check = false;
-            t.position.map((p) => {
-              if (p.title === firstData) check = true;
-            });
-            if (!check)
-              t.position.push({
-                title: firstData,
-                requirements: [
-                  { title: "Information" },
-                  {
-                    title: "Question",
-                    val: ["General knowledge", "Mathematics", "Java"],
-                  },
-                ],
-              });
-          }
-          return t;
-        })
-      );
+        });
+      });
+      setData(items);
     }
-    setFirstData("");
-  };
+  }, [data]);
+  const handleAdd = async (title: string) => {
+    if (user?.id && firstData) {
+      const res = await occupationAPI.addOccupation(user.id, firstData);
+      console.log(res, "res addnew");
 
+      if (res === 1 && title === "Jobs" && firstData) {
+        setData((pre) =>
+          pre.map((t) => {
+            if (t.title === title && typeof t.position === "object") {
+              // check Does it already exist or not?
+              let check = false;
+              t.position.map((p) => {
+                if (p.title === firstData) check = true;
+              });
+              if (!check)
+                t.position.push({
+                  title: firstData,
+                  requirements: [
+                    { title: "Information" },
+                    {
+                      title: "Question",
+                      val: ["General knowledge", "Mathematics", "Java"],
+                    },
+                  ],
+                });
+            }
+            return t;
+          })
+        );
+      }
+      setFirstData("");
+    }
+  };
+  const handleAddCatePart = async (id: string) => {
+    if (id && cate) {
+      console.log(
+        "add new cate",
+        "addDataCate",
+        addDataCate,
+        "jobShow",
+        jobShow
+      );
+      const res = await catePartsAPI.addCatePart(id, cate);
+      if (res === 1) {
+        setData((pre) =>
+          pre.map((t) => {
+            if (t.title === "Jobs") {
+              // check Does it already exist or not?
+              t.position.map((p) => {
+                if (p.title === jobShow) {
+                  console.log("t.position", t.position);
+
+                  p.requirements.map((r) => {
+                    console.log("p.requirements", p.requirements);
+                    if (r.title === addDataCate) {
+                      r.val?.push(cate);
+                    }
+                    return r;
+                  });
+                  return p;
+                }
+                return p;
+              });
+            }
+            return t;
+          })
+        );
+      }
+    }
+  };
   return (
     <>
-      {data.map((op) => (
+      {datas.map((op) => (
         <div className={styles.question} key={op.title}>
           <h4>
             {op.title}
@@ -119,7 +182,7 @@ const Option = () => {
                   setAddData((pre) => (pre === op.title ? "" : op.title))
                 }
               >
-                <AddI />
+                {addData === op.title ? <MinusI /> : <AddI />}
               </span>
             )}
           </h4>
@@ -133,10 +196,6 @@ const Option = () => {
                   marginBottom: jobShow === po.title ? "7px" : "",
                   paddingBottom: jobShow === po.title ? "5px" : "",
                 }}
-                onClick={() => {
-                  setJobShow((pre) => (pre === po.title ? "" : po.title));
-                  setAddData("");
-                }}
               >
                 <div
                   className={styles.addTitle}
@@ -145,24 +204,17 @@ const Option = () => {
                       jobShow === po.title ? "1px solid #999999" : "",
                     color: jobShow === po.title ? "#9ef3f7" : "",
                   }}
+                  onClick={() => {
+                    setJobShow((pre) => (pre === po.title ? "" : po.title));
+                    setAddData("");
+                  }}
                 >
                   {po.title}
                 </div>
                 {jobShow === po.title && (
                   <>
                     {po.requirements.map((qs) => (
-                      <div
-                        className={styles.questionIn}
-                        key={qs.title}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowQuest((pre) =>
-                            pre === po.title + qs.title
-                              ? ""
-                              : po.title + qs.title
-                          );
-                        }}
-                      >
+                      <div className={styles.questionIn} key={qs.title}>
                         <div
                           className={styles.addTitle}
                           style={{
@@ -180,6 +232,14 @@ const Option = () => {
                                   : "",
                             }}
                             className={styles.itemPositionIn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowQuest((pre) =>
+                                pre === po.title + qs.title
+                                  ? ""
+                                  : po.title + qs.title
+                              );
+                            }}
                           >
                             {qs.title}
                           </p>
@@ -194,8 +254,18 @@ const Option = () => {
                                   alignItems: "center",
                                   padding: "5px",
                                 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAddDataCate((pre) =>
+                                    pre === qs.title ? "" : qs.title
+                                  );
+                                }}
                               >
-                                <AddI />
+                                {addDataCate === qs.title ? (
+                                  <MinusI />
+                                ) : (
+                                  <AddI />
+                                )}
                               </span>
                             )}
                         </div>
@@ -206,6 +276,19 @@ const Option = () => {
                               <p className={styles.itemPositionIn}>{v}</p>
                             </div>
                           ))}
+                        {addDataCate === qs.title && (
+                          <div className={styles.divAdd}>
+                            <input
+                              type="text"
+                              placeholder={qs.title}
+                              value={cate}
+                              onChange={(e) => setCate(e.target.value)}
+                            />
+                            <button onClick={() => handleAddCatePart(op.id)}>
+                              Add
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </>
