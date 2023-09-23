@@ -27,5 +27,16 @@ class CateParts {
       return errorHandling(err);
     }
   };
+  delete = async (id: string, occupationId: string) => {
+    try {
+      const response = await http.delete(
+        `/CateParts/Delete/${id}/${occupationId}`
+      );
+      return response.data;
+    } catch (error) {
+      const err: any = error as AxiosError;
+      return errorHandling(err);
+    }
+  };
 }
 export default new CateParts();

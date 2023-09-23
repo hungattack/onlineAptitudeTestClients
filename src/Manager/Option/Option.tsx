@@ -8,12 +8,26 @@ import catePartsAPI from "../../API/catePartsAPI/catePartsAPI";
 import { useSelector } from "react-redux";
 import { PropsUserDataRD } from "../../redux/userData";
 import occupationAPI from "../../API/occupationAPI/occupationAPI";
+import { Div } from "../../styleComponent/styleComponent";
 export interface PropsOccupationData {
-  id: string;
+  Id: string;
   userId: string;
-  name: string;
+  Name: string;
   createdAt: string;
   updatedAt: string;
+  Cates: {
+    $id: string;
+    $values: {
+      $id: string;
+      CreatedAt: string;
+      Id: string;
+      Name: string;
+      OccupationId: string;
+      TimeOut: number;
+      TimeType: string;
+      UpdatedAt: string;
+    }[];
+  };
 }
 const Option = () => {
   const { user } = useSelector(
@@ -42,6 +56,7 @@ const Option = () => {
   const { data } = useQuery({
     queryKey: ["JobCateParts", 1],
     enabled: user?.id ? true : false,
+    staleTime: 60 * 1000,
     queryFn: async () => {
       const rr: PropsOccupationData[] = await occupationAPI.getOccupation(
         user?.id
@@ -49,12 +64,14 @@ const Option = () => {
       return rr;
     },
   });
+  console.log(data, "data Oc");
   const [datas, setData] = useState<
     {
       id: string;
       title: string;
       position:
         | {
+            id: string;
             title: string;
             requirements: (
               | {
@@ -63,7 +80,7 @@ const Option = () => {
                 }
               | {
                   title: string;
-                  val: string[];
+                  val: { id: string; name: string }[];
                 }
             )[];
           }[];
@@ -72,33 +89,45 @@ const Option = () => {
   useEffect(() => {
     if (data) {
       const items: typeof datas = [];
-      data.forEach((d) => {
-        items.push({
-          id: d.id,
-          title: "Jobs",
-          position: [
-            {
-              title: d.name,
-              requirements: [
-                { title: "Information" },
-                {
-                  title: "Question",
-                  val: ["General knowledge", "Mathematics", "Java"],
-                },
-              ],
-            },
-          ],
+      if (data?.length) {
+        data.forEach((d) => {
+          items.push({
+            id: d.Id,
+            title: "Jobs",
+            position: [
+              {
+                id: d.Id,
+                title: d.Name,
+                requirements: [
+                  { title: "Information" },
+                  {
+                    title: "Question",
+                    val: d.Cates?.$values.map((c) => {
+                      return { id: c.Id, name: c.Name };
+                    }),
+                  },
+                ],
+              },
+            ],
+          });
         });
-      });
+      } else {
+        items.push({
+          id: "Jobs",
+          title: "Jobs",
+          position: [],
+        });
+      }
       setData(items);
     }
   }, [data]);
   const handleAdd = async (title: string) => {
+    // Occupation
     if (user?.id && firstData) {
       const res = await occupationAPI.addOccupation(user.id, firstData);
       console.log(res, "res addnew");
 
-      if (res === 1 && title === "Jobs" && firstData) {
+      if (res?.id && title === "Jobs" && firstData) {
         setData((pre) =>
           pre.map((t) => {
             if (t.title === title && typeof t.position === "object") {
@@ -109,12 +138,13 @@ const Option = () => {
               });
               if (!check)
                 t.position.push({
+                  id: res.id,
                   title: firstData,
                   requirements: [
                     { title: "Information" },
                     {
                       title: "Question",
-                      val: ["General knowledge", "Mathematics", "Java"],
+                      val: [],
                     },
                   ],
                 });
@@ -128,39 +158,82 @@ const Option = () => {
   };
   const handleAddCatePart = async (id: string) => {
     if (id && cate) {
-      console.log(
-        "add new cate",
-        "addDataCate",
-        addDataCate,
-        "jobShow",
-        jobShow
-      );
       const res = await catePartsAPI.addCatePart(id, cate);
-      if (res === 1) {
+      if (res?.id) {
         setData((pre) =>
           pre.map((t) => {
-            if (t.title === "Jobs") {
-              // check Does it already exist or not?
-              t.position.map((p) => {
-                if (p.title === jobShow) {
-                  console.log("t.position", t.position);
+            // check Does it already exist or not?
+            t.position.map((p) => {
+              if (!(p.id === res.id || p.title === cate)) {
+                return p.requirements.map((req) => {
+                  if (req.title === "Question") {
+                    req.val?.push({ id: res.id, name: cate });
+                    return req;
+                  }
+                });
+              }
+              return p;
+            });
 
-                  p.requirements.map((r) => {
-                    console.log("p.requirements", p.requirements);
-                    if (r.title === addDataCate) {
-                      r.val?.push(cate);
-                    }
-                    return r;
-                  });
-                  return p;
-                }
-                return p;
-              });
-            }
             return t;
           })
         );
+        setCate("");
       }
+    }
+  };
+  // if (p.title === jobShow) {
+  //   console.log("t.position", t.position);
+
+  //   p.requirements.map((r) => {
+  //     console.log("p.requirements", p.requirements);
+  //     if (r.title === addDataCate) {
+  //       r.val?.push({ id: res.id, name: cate });
+  //     }
+  //     return r;
+  //   });
+  //   return p;
+  // }
+  const handleDeleteCate = async (
+    id: string,
+    occupationId: string,
+    name: string
+  ) => {
+    const ok = window?.confirm(`Do you wanna delete ${name}?`);
+    if (ok) {
+      const res = await catePartsAPI.delete(id, occupationId);
+      if (res?.id) {
+        setData((pre) =>
+          pre.filter((j) =>
+            j.position.map((p) =>
+              p.requirements.map((q) => {
+                if (q.val?.length) {
+                  const s = q.val.filter((c) => c.id !== res.id);
+                  q.val = s;
+                  return q;
+                }
+                return q;
+              })
+            )
+          )
+        );
+      }
+      console.log(res, "deleted res");
+    }
+  };
+  const handleRemove = async (id: string, name: string) => {
+    const ok = window?.confirm(`Do you wanna delete ${name}?`);
+    if (ok) {
+      const res = await occupationAPI.delete(id);
+      if (res?.id) {
+        setData((pre) =>
+          pre.map((j) => {
+            j.position = j.position.filter((p) => p.id !== res.id);
+            return j;
+          })
+        );
+      }
+      console.log(res, "res delete job");
     }
   };
   return (
@@ -210,6 +283,23 @@ const Option = () => {
                   }}
                 >
                   {po.title}
+                  <Div
+                    width="auto"
+                    css={`
+                      padding: 3px 7px;
+                      &:hover {
+                        color: #9ef3f7;
+                        font-size: 20px;
+                      }
+                    `}
+                    onClick={(e) => {
+                      // delete Job
+                      e.stopPropagation();
+                      handleRemove(po.id, po.title);
+                    }}
+                  >
+                    <MinusI />
+                  </Div>
                 </div>
                 {jobShow === po.title && (
                   <>
@@ -272,9 +362,29 @@ const Option = () => {
                         {showQues === po.title + qs.title &&
                           qs.val &&
                           qs.val.map((v) => (
-                            <div key={v} onClick={(e) => e.stopPropagation()}>
-                              <p className={styles.itemPositionIn}>{v}</p>
-                            </div>
+                            <Div
+                              key={v.id}
+                              onClick={(e) => e.stopPropagation()}
+                              justify="left"
+                              css="padding-left: 20px; "
+                            >
+                              <p className={styles.itemPositionIn}>{v.name}</p>
+                              <Div
+                                width="auto"
+                                css={`
+                                  padding: 3px 7px;
+                                  &:hover {
+                                    color: #9ef3f7;
+                                    font-size: 20px;
+                                  }
+                                `}
+                                onClick={() =>
+                                  handleDeleteCate(v.id, po.id, v.name)
+                                }
+                              >
+                                <MinusI />
+                              </Div>
+                            </Div>
                           ))}
                         {addDataCate === qs.title && (
                           <div className={styles.divAdd}>
@@ -284,7 +394,7 @@ const Option = () => {
                               value={cate}
                               onChange={(e) => setCate(e.target.value)}
                             />
-                            <button onClick={() => handleAddCatePart(op.id)}>
+                            <button onClick={() => handleAddCatePart(po.id)}>
                               Add
                             </button>
                           </div>
