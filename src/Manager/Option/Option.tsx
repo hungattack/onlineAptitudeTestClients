@@ -117,6 +117,7 @@ const Option: React.FC<{
                                     {
                                         title: 'Question',
                                         val: d.Cates?.$values.map((c) => {
+                                            // get Id catePart
                                             return { id: c.Id, name: c.Name };
                                         }),
                                     },
@@ -366,6 +367,7 @@ const Option: React.FC<{
                                                                 className={styles.itemPositionIn}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
+
                                                                     data?.forEach((d) => {
                                                                         d.Cates.$values.forEach((c) => {
                                                                             if (c.Id === v.id) {

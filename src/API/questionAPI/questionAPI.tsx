@@ -13,18 +13,18 @@ class Question {
             return errorHandling(err);
         }
     };
-    addOccupation = async (userId: string, Name: string) => {
+    add = async (QuestionName: string, AnswerArray: string, Answer: string, Point: number, PartId: string) => {
         try {
-            const response = await http.post(`/Occupation/AddNew`, { userId, Name });
+            const response = await http.post(`/Question/AddNew`, { QuestionName, AnswerArray, Answer, Point, PartId });
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;
             return errorHandling(err);
         }
     };
-    delete = async (id: string) => {
+    delete = async (Id: string, PartId: string) => {
         try {
-            const response = await http.delete(`/Occupation/Delete/${id}`);
+            const response = await http.delete(`/Question/Delete/${Id}/${PartId}`);
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;
