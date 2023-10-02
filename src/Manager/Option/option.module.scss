@@ -1,54 +1,64 @@
 .question {
-  margin: 5px 0;
-  h4,
-  .addTitle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-right: 22px;
-    color: #fff;
-    &:hover {
-      color: #9ef3f7;
+    margin: 5px 0;
+    h4,
+    .addTitle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-right: 22px;
+        color: #fff;
+        &:hover {
+            color: #9ef3f7;
+        }
     }
-  }
 }
 .itemPosition {
-  font-size: 1.3rem;
-  color: #fff;
-  padding-left: 20px;
-  padding-top: 5px;
-  cursor: var(--pointer);
+    font-size: 1.3rem;
+    color: #fff;
+    padding-left: 20px;
+    padding-top: 5px;
+    cursor: var(--pointer);
 }
 .itemPositionIn {
-  font-size: 1.3rem;
-  color: #fff;
-  padding-left: 20px;
-  padding-top: 3px;
-  cursor: var(--pointer);
-  &:hover {
-    color: #9ef3f7;
-  }
+    font-size: 1.3rem;
+    color: #fff;
+    padding-left: 20px;
+    padding-top: 3px;
+    cursor: var(--pointer);
+    &:hover {
+        color: #9ef3f7;
+    }
 }
 .questionIn {
-  padding-left: 25px;
+    padding-left: 25px;
 }
 .divAdd {
-  display: flex;
-  align-items: center;
-  margin-top: 5px;
-  font-size: 1.4rem;
-  input {
-    width: 80%;
-    padding: 3px 5px;
-    border-radius: 5px;
-    background-color: transparent;
-    color: #fff;
-  }
-  button {
-    padding: 2px 5px;
-    border-radius: 5px;
-    background-color: transparent;
-    color: #fff;
-    cursor: var(--pointer);
-  }
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    font-size: 1.4rem;
+    input {
+        width: 80%;
+        padding: 3px 5px;
+        border-radius: 5px;
+        background-color: transparent;
+        color: #fff;
+    }
+    button {
+        padding: 2px 5px;
+        border-radius: 5px;
+        background-color: transparent;
+        color: #fff;
+        cursor: var(--pointer);
+    }
+}
+.info {
+    div {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .ant-spin-container {
+        display: flex;
+        justify-content: center;
+    }
 }

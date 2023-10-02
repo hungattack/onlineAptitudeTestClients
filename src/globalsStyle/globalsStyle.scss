@@ -1,131 +1,134 @@
-@import "normalize.css";
+@import 'normalize.css';
 
 :root {
-  --color-light: #cbcbcb;
-  --color-dark: #333;
-  --border-radius-50: 50%;
-  --background: 100%;
-  --transition-03s: all 0.3s linear;
-  --justify-content-start: start;
-  --full: 100%;
-  @media (min-width: 768px) {
-    --pointer: pointer;
-  }
-  #pickerB {
-    --rgb-background: 26 27 30 !important;
-  }
+    --color-light: #cbcbcb;
+    --color-dark: #333;
+    --border-radius-50: 50%;
+    --background: 100%;
+    --transition-03s: all 0.3s linear;
+    --justify-content-start: start;
+    --full: 100%;
+    @media (min-width: 768px) {
+        --pointer: pointer;
+    }
+    #pickerB {
+        --rgb-background: 26 27 30 !important;
+    }
 }
 
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 html {
-  font-size: 62.5%;
-  height: var(--background);
+    font-size: 62.5%;
+    height: var(--background);
 }
 body {
-  font-family: "Raleway", sans-serif;
-  font-size: 1.6rem;
-  line-height: 1.5;
-  text-rendering: optimizeSpeed;
-  overflow-y: overlay;
-  height: var(--background);
+    font-family: 'Raleway', sans-serif;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    text-rendering: optimizeSpeed;
+    overflow-y: overlay;
+    height: var(--background);
 }
 html *::-webkit-scrollbar {
-  width: 0px;
+    width: 0px;
 }
 
 html *::-webkit-scrollbar-thumb {
-  border-radius: 4px;
-  background-color: rgb(131 131 131 / 63%);
+    border-radius: 4px;
+    background-color: rgb(131 131 131 / 63%);
 }
 
 html *::-webkit-scrollbar-track {
-  border-radius: 0;
-  background-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
 }
 @media (min-width: 767px) {
-  body {
-    html *::-webkit-scrollbar {
-      width: 7px;
-      height: 10px;
-      border-radius: 0;
+    body {
+        html *::-webkit-scrollbar {
+            width: 7px;
+            height: 10px;
+            border-radius: 0;
+        }
     }
-  }
 }
 #root {
-  height: var(--background);
+    height: var(--background);
 }
 @font-face {
-  font-family: Raleway Straight;
-  src: url("../assets/font-texts/Raleway-Regular.ttf");
-  font-weight: 400;
+    font-family: Raleway Straight;
+    src: url('../assets/font-texts/Raleway-Regular.ttf');
+    font-weight: 400;
 }
 @font-face {
-  font-family: ZenKaku;
-  src: url("../assets/font-texts/NunitoSans_7pt_Condensed-Medium.ttf");
-  font-weight: 400;
+    font-family: ZenKaku;
+    src: url('../assets/font-texts/NunitoSans_7pt_Condensed-Medium.ttf');
+    font-weight: 400;
 }
 @font-face {
-  font-family: Arima Straight;
-  src: url("../assets/font-texts/ArimaMadurai-Regular.ttf");
-  font-weight: 400;
+    font-family: Arima Straight;
+    src: url('../assets/font-texts/ArimaMadurai-Regular.ttf');
+    font-weight: 400;
 }
 @font-face {
-  font-family: Saira Straight;
-  src: url("../assets/font-texts/Saira-VariableFont_wdth,wght.ttf");
-  font-weight: 400;
+    font-family: Saira Straight;
+    src: url('../assets/font-texts/Saira-VariableFont_wdth,wght.ttf');
+    font-weight: 400;
 }
 @font-face {
-  font-family: RobotoL Straight;
-  src: url("../assets/font-texts/Roboto-Light.ttf");
-  font-weight: 400;
+    font-family: RobotoL Straight;
+    src: url('../assets/font-texts/Roboto-Light.ttf');
+    font-weight: 400;
 }
 @font-face {
-  font-family: RobotoL Italics;
-  src: url("../assets/font-texts/Roboto-LightItalic.ttf");
-  font-weight: 400;
+    font-family: RobotoL Italics;
+    src: url('../assets/font-texts/Roboto-LightItalic.ttf');
+    font-weight: 400;
 }
 @font-face {
-  font-family: Item Straight;
-  src: url(../assets/font-texts/Itim-Regular.ttf);
-  font-weight: 400;
+    font-family: Item Straight;
+    src: url(../assets/font-texts/Itim-Regular.ttf);
+    font-weight: 400;
 }
 @font-face {
-  font-family: Noto Sans Straight;
-  src: url(../assets/font-texts/NotoSans-Light.ttf);
-  font-weight: 400;
+    font-family: Noto Sans Straight;
+    src: url(../assets/font-texts/NotoSans-Light.ttf);
+    font-weight: 400;
 }
 @font-face {
-  font-family: Noto Sans Italics;
-  src: url(../assets/font-texts/NotoSans-MediumItalic.ttf);
-  font-weight: 400;
+    font-family: Noto Sans Italics;
+    src: url(../assets/font-texts/NotoSans-MediumItalic.ttf);
+    font-weight: 400;
 }
 button {
-  border: none;
+    border: none;
 }
 input {
-  outline: none;
+    outline: none;
 }
 p {
-  font-size: 1.6rem;
+    font-size: 1.6rem;
 }
 a {
-  text-decoration: none;
-  color: var(--color-light);
+    text-decoration: none;
+    color: var(--color-light);
 }
 ul {
-  list-style-type: none;
+    list-style-type: none;
 }
 img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-repeat: no-repeat;
 }
 
 .Website {
-  transition: var(--transition-03s);
+    transition: var(--transition-03s);
+}
+.ant-image-preview-img {
+    object-fit: contain !important;
 }

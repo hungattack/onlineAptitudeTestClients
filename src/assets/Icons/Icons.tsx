@@ -1,115 +1,80 @@
 import {
-  BsThreeDotsVertical,
-  BsBook,
-  BsCheck2,
-  BsPhone,
-  BsFillCameraVideoFill,
-  BsMessenger,
-  BsEmojiSmileFill,
-  BsTypeItalic,
-  BsClockHistory,
-  BsGenderMale,
-  BsGenderFemale,
-  BsFillCircleFill,
-  BsImage,
-  BsFillVolumeMuteFill,
-  BsFillVolumeDownFill,
-  BsFillCameraFill,
-} from "react-icons/bs";
+    BsThreeDotsVertical,
+    BsBook,
+    BsCheck2,
+    BsPhone,
+    BsFillCameraVideoFill,
+    BsMessenger,
+    BsEmojiSmileFill,
+    BsTypeItalic,
+    BsClockHistory,
+    BsGenderMale,
+    BsGenderFemale,
+    BsFillCircleFill,
+    BsImage,
+    BsFillVolumeMuteFill,
+    BsFillVolumeDownFill,
+    BsFillCameraFill,
+} from 'react-icons/bs';
 import {
-  IoImagesOutline,
-  IoLogoYoutube,
-  IoCloseOutline,
-  IoLanguageOutline,
-  IoArrowUndoCircleOutline,
-  IoAdd,
-} from "react-icons/io5";
+    IoImagesOutline,
+    IoLogoYoutube,
+    IoCloseOutline,
+    IoLanguageOutline,
+    IoArrowUndoCircleOutline,
+    IoAdd,
+} from 'react-icons/io5';
+import { IoMdNotifications, IoIosSend, IoMdShareAlt, IoIosArrowRoundBack } from 'react-icons/io';
 import {
-  IoMdNotifications,
-  IoIosSend,
-  IoMdShareAlt,
-  IoIosArrowRoundBack,
-} from "react-icons/io";
+    BiBullseye,
+    BiDotsHorizontalRounded,
+    BiLike,
+    BiReset,
+    BiSolidSquareRounded,
+    BiTimer,
+    BiUser,
+} from 'react-icons/bi';
+import { FcSignature } from 'react-icons/fc';
+import { SiExpertsexchange } from 'react-icons/si';
 import {
-  BiBullseye,
-  BiDotsHorizontalRounded,
-  BiLike,
-  BiReset,
-  BiSolidSquareRounded,
-  BiTimer,
-  BiUser,
-} from "react-icons/bi";
-import { FcSignature } from "react-icons/fc";
-import { SiExpertsexchange } from "react-icons/si";
+    AiOutlineSetting,
+    AiOutlineHome,
+    AiOutlineEye,
+    AiOutlineEyeInvisible,
+    AiOutlineLoading,
+    AiOutlineHeart,
+    AiOutlinePlayCircle,
+    AiOutlineStar,
+    AiFillHeart,
+    AiOutlineLike,
+    AiOutlineLoading3Quarters,
+    AiOutlineMinus,
+} from 'react-icons/ai';
+import { GiBurningBook, GiEarthAfricaEurope, GiEarthAmerica, GiEarthAsiaOceania, GiNewspaper } from 'react-icons/gi';
 import {
-  AiOutlineSetting,
-  AiOutlineHome,
-  AiOutlineEye,
-  AiOutlineEyeInvisible,
-  AiOutlineLoading,
-  AiOutlineHeart,
-  AiOutlinePlayCircle,
-  AiOutlineStar,
-  AiFillHeart,
-  AiOutlineLike,
-  AiOutlineLoading3Quarters,
-  AiOutlineMinus,
-} from "react-icons/ai";
-import {
-  GiBurningBook,
-  GiEarthAfricaEurope,
-  GiEarthAmerica,
-  GiEarthAsiaOceania,
-  GiNewspaper,
-} from "react-icons/gi";
-import {
-  MdWorkOutline,
-  MdEmojiPeople,
-  MdRestartAlt,
-  MdStraighten,
-  MdOutlineNavigateNext,
-  MdNotInterested,
-  MdNavigateBefore,
-  MdEditLocation,
-  MdOutlineWork,
-  MdOutlineTitle,
-  MdNightlightRound,
-} from "react-icons/md";
-import { GoClockFill, GoScreenFull, GoScreenNormal } from "react-icons/go";
-import {
-  FaPeopleArrows,
-  FaAddressCard,
-  FaUserFriends,
-  FaBirthdayCake,
-  FaRegSmileBeam,
-} from "react-icons/fa";
-import {
-  RiChatPrivateFill,
-  RiDragMoveFill,
-  RiExchangeCnyFill,
-  RiMailSendLine,
-  RiTyphoonLine,
-} from "react-icons/ri";
-import {
-  TbArrowNarrowLeft,
-  TbGenderFemale,
-  TbGenderMale,
-  TbGridDots,
-  TbTextResize,
-} from "react-icons/tb";
-import { CgProfile, CgWebsite } from "react-icons/cg";
-import { VscPreview } from "react-icons/vsc";
-import {
-  CiHeart,
-  CiPaperplane,
-  CiSearch,
-  CiWifiOff,
-  CiWifiOn,
-} from "react-icons/ci";
-import { SlLike } from "react-icons/sl";
-import { BiSolidColor } from "react-icons/bi";
-import { PiPlayFill } from "react-icons/pi";
-import { HiMiniPause } from "react-icons/hi2";
+    MdWorkOutline,
+    MdEmojiPeople,
+    MdRestartAlt,
+    MdStraighten,
+    MdOutlineNavigateNext,
+    MdNotInterested,
+    MdNavigateBefore,
+    MdEditLocation,
+    MdOutlineWork,
+    MdOutlineTitle,
+    MdNightlightRound,
+} from 'react-icons/md';
+import { GoClockFill, GoDotFill, GoScreenFull, GoScreenNormal } from 'react-icons/go';
+import { FaPeopleArrows, FaAddressCard, FaUserFriends, FaBirthdayCake, FaRegSmileBeam } from 'react-icons/fa';
+import { RiChatPrivateFill, RiDragMoveFill, RiExchangeCnyFill, RiMailSendLine, RiTyphoonLine } from 'react-icons/ri';
+import { TbArrowNarrowLeft, TbGenderFemale, TbGenderMale, TbGridDots, TbTextResize } from 'react-icons/tb';
+import { CgProfile, CgWebsite } from 'react-icons/cg';
+import { VscPreview } from 'react-icons/vsc';
+import { CiHeart, CiPaperplane, CiSearch, CiWifiOff, CiWifiOn } from 'react-icons/ci';
+import { SlLike } from 'react-icons/sl';
+import { BiSolidColor } from 'react-icons/bi';
+import { PiPlayFill } from 'react-icons/pi';
+import { HiMiniPause } from 'react-icons/hi2';
 
 export const ImageI = () => <IoImagesOutline />;
 
@@ -154,3 +119,4 @@ export const OpenEyeI = () => <AiOutlineEye />;
 export const CloseEyeI = () => <AiOutlineEyeInvisible />;
 export const TimerI = () => <BiTimer />;
 export const MinusI = () => <AiOutlineMinus />;
+export const ActiveI = () => <GoDotFill />;

@@ -31,23 +31,26 @@ function App() {
   console.log(data, "data user");
 
   return (
-    <div className="App">
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        {user && (
-          <>
-            {user.roles.name === "admin" ? (
-              <Route path="/manager" element={<Manager />} />
-            ) : (
-              <Route path="/regManager" element={<RegManager />} />
-            )}
-          </>
-        )}
-      </Routes>
-      {login && <Login />}
-      {register && <Register />}
-    </div>
+      <div className="App">
+          <Header />
+          <Routes>
+              <Route path="/" element={<Home />} />
+              {user && (
+                  <>
+                      {user.roles.name === 'admin' ? (
+                          <>
+                              <Route path="/manager" element={<Manager />} />
+                              {/* <Route path="/regManager" element={<RegManager />} /> */}
+                          </>
+                      ) : (
+                          <Route path="/regManager" element={<RegManager />} />
+                      )}
+                  </>
+              )}
+          </Routes>
+          {login && <Login />}
+          {register && <Register />}
+      </div>
   );
 }
 

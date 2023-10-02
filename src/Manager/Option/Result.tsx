@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { ReactElement, useEffect, useRef, useState } from 'react';
 import { Div, H3, Input, P, Textarea } from '../../styleComponent/styleComponent';
 import { Space, Table, Tag } from 'antd';
 import { ColumnsType } from 'antd/es/table';
@@ -8,6 +8,9 @@ import { useQuery } from '@tanstack/react-query';
 import questionAPI from '../../API/questionAPI/questionAPI';
 import moment from 'moment';
 import { Toast } from 'react-toastify/dist/components';
+import { useSelector } from 'react-redux';
+import { PropsUserDataRD } from '../../redux/userData';
+import catePartsAPI from '../../API/catePartsAPI/catePartsAPI';
 
 const Result: React.FC<{
     result: {
@@ -16,22 +19,35 @@ const Result: React.FC<{
         Id: string;
         Name: string;
         OccupationId: string;
-        AnswerType: string;
         TimeOut: number;
         TimeType: string;
         UpdatedAt: string;
     };
-}> = ({ result }) => {
+    setReChange: React.Dispatch<
+        React.SetStateAction<
+            | {
+                  id: string;
+                  name: string;
+                  val: number | string;
+              }[]
+            | undefined
+        >
+    >;
+}> = ({ result, setReChange }) => {
+    const user = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
+        return state.persistedReducer.userData.user;
+    });
     const dataq: DataType[] = [];
     const [addData, setAddData] = useState<boolean>(false);
-    const [type, setType] = useState<boolean>(() => (result.AnswerType === 'string' ? false : true)); // string or array
+    const [type, setType] = useState<string>('string'); // string or array
     const [showTimerType, setShowTimerType] = useState<boolean>(false);
-    const [timer, setTimer] = useState<string>(result.TimeType);
-    const [valTimer, setValTimer] = useState<number>(result.TimeOut);
+    const [timer, setTimer] = useState<string>(result.TimeType ?? 'Minute');
+    const [valTimer, setValTimer] = useState<number>(result.TimeOut ?? 0);
+    const [catePart, setCatePart] = useState<string>(result.Name);
     const [edit, setEdit] = useState<boolean>(false);
     const [reload, setReload] = useState<string>('ok');
 
-    const [update, setUpdate] = useState<string>(''); //for question
+    const [updateF, setUpdateF] = useState<string>(''); //for question
     const [dataDelete, setDataDelete] = useState<string>('');
     const [question, setQuestion] = useState<{
         index: number;
@@ -44,14 +60,15 @@ const Result: React.FC<{
         index: number | ReactElement;
         key: string;
         questionName: string | ReactElement;
-        answer: string | ReactElement;
+        answer?: string | ReactElement;
         point: number | ReactElement;
-        answerArray: string[] | ReactElement;
+        answerArray?: string[] | ReactElement;
         createdAt?: string;
+        answerType?: string;
         id?: string;
     }
-    const { data } = useQuery({
-        queryKey: ['ResultQuestion', result.Id + reload],
+    const { data, refetch } = useQuery({
+        queryKey: ['ResultQuestion', result.Id + reload + type],
         enabled: result !== undefined,
         queryFn: async () => {
             const rs: {
@@ -61,9 +78,10 @@ const Result: React.FC<{
                 partId: string;
                 point: number;
                 answerArray: string;
+                answerType: string;
                 questionName: string;
                 updatedAt: string;
-            }[] = await questionAPI.getQuestion(result.Id);
+            }[] = await questionAPI.getQuestion(result.Id, type);
             return rs;
         },
         staleTime: 60 * 1000,
@@ -79,18 +97,27 @@ const Result: React.FC<{
                 return po ? String(po) : '0';
             });
     }, [data]);
+    useEffect(() => {
+        if (result.TimeOut && result.TimeOut !== valTimer) {
+            setValTimer(result.TimeOut);
+        }
+        if (result.Name !== catePart) {
+            setCatePart(result.Name);
+        }
+    }, [result]);
     const handleDelete = async (id: string) => {
         const isDel = window.confirm('Are you sure you want to delete this data!');
         if (isDel) {
             const res = await questionAPI.delete(id, result.Id);
             if (res) {
+                setUpdateF('');
                 setReload(id);
                 toast('Delete successfully!');
             }
         }
     };
     const timerData = ['Hour', 'Minute', 'Second'];
-    const columns: ColumnsType<DataType> = [
+    let columns: ColumnsType<DataType> = [
         {
             title: 'Index',
             dataIndex: 'index',
@@ -100,7 +127,6 @@ const Result: React.FC<{
             title: 'Name',
             dataIndex: 'questionName',
             key: 'questionName',
-            render: (text) => <P>{text}</P>,
         },
         {
             title: 'Answer Array',
@@ -127,7 +153,7 @@ const Result: React.FC<{
             key: 'action',
             render: (_, record) => (
                 <Space size="middle">
-                    {update && record.key === update ? (
+                    {updateF && record.key === updateF ? (
                         <P
                             css={`
                                 padding: 3px 7px;
@@ -138,7 +164,7 @@ const Result: React.FC<{
                                 cursor: var(--pointer);
                             `}
                             onClick={() => {
-                                if (record.id) setUpdate(record.id);
+                                if (record.id) setUpdateF(record.id);
                             }}
                         >
                             Save
@@ -154,16 +180,27 @@ const Result: React.FC<{
                                 cursor: var(--pointer);
                             `}
                             onClick={() => {
-                                if (record.id) setUpdate(record.id);
+                                if (record.id) setUpdateF(record.id);
                                 data?.map((d, index) => {
                                     if (d.id === record.id) {
-                                        setQuestion({
-                                            index: index + 1,
-                                            Name: d.questionName,
-                                            AnswerArray: d.answerArray,
-                                            Answer: d.answer,
-                                            Point: d.point,
+                                        setUpData({
+                                            id: record.id,
+                                            partId: result.Id,
+                                            occupation: result.OccupationId,
+                                            questionN: d.questionName,
+                                            answerArray: JSON.parse(d.answerArray),
+                                            answerSt: JSON.parse(d.answer),
+                                            pointS: d.point,
                                         });
+                                        isUpdate.current = {
+                                            id: record.id,
+                                            partId: result.Id,
+                                            occupation: result.OccupationId,
+                                            questionN: d.questionName,
+                                            answerArray: JSON.parse(d.answerArray),
+                                            answerSt: JSON.parse(d.answer),
+                                            pointS: d.point,
+                                        };
                                     }
                                 });
                             }}
@@ -198,13 +235,16 @@ const Result: React.FC<{
             key: 'add',
         },
     ];
-
+    if (type === 'string') {
+        columns = columns.filter((co) => co.title !== 'Answer' && co.title !== 'Answer Array');
+    }
     const [dataRen, setDataRen] = useState<DataType[]>([]);
-    // add question here
+    // add question here array
     const [answerArray, setAnswerArray] = useState<string[]>([]);
     const [answerArr, setAnswerArr] = useState<string>('');
     const [answerSt, setAnswerSt] = useState<string[]>([]);
     const [answerS, setAnswerS] = useState<string>('');
+    // string
     const [questionN, setQuestionN] = useState<string>('');
     const [pointS, setPointS] = useState<string>('');
     const [err, setErr] = useState<{ name: boolean; ansArr: boolean; ansS: boolean; point: boolean }>({
@@ -214,14 +254,45 @@ const Result: React.FC<{
         point: false,
     });
     // update
-    const [upData, setUpData] = useState<{
+    const isUpdate = useRef<{
+        id: string;
+        partId: string;
+        occupation: string;
         answerArray: string[];
-        answerArr: string;
+        answerArr?: string;
         answerSt: string[];
-        answerS: string;
+        answerS?: string;
         questionN: string;
         pointS: number;
     }>({
+        id: '',
+        partId: '',
+        occupation: '',
+        answerArray: [],
+        answerArr: '',
+        answerSt: [],
+        answerS: '',
+        questionN: '',
+        pointS: 0,
+    });
+    const [upData, setUpData] = useState<{
+        id: string;
+        partId: string;
+        occupation: string;
+        answerArray: string[];
+        answerArr?: string;
+        answerSt: string[];
+        answerS?: string;
+        questionN: string;
+        pointS: number;
+        which?: {
+            aArr?: number;
+            aSt?: number;
+        };
+    }>({
+        id: '',
+        partId: '',
+        occupation: '',
         answerArray: [],
         answerArr: '',
         answerSt: [],
@@ -236,31 +307,47 @@ const Result: React.FC<{
             ansS: false,
             point: false,
         };
-        if (
-            answerArray.length &&
-            JSON.stringify(answerArray).length < 300 &&
-            answerSt.length &&
-            JSON.stringify(answerSt).length < 300 &&
-            questionN &&
-            pointS
-        ) {
-            const res = await questionAPI.add(
-                questionN,
-                JSON.stringify(answerArray),
-                JSON.stringify(answerSt),
-                Number(pointS),
-                result.Id,
-            );
-            if (res) {
-                toast('Add successfully!');
-                setReload(res);
-                setAddData(false);
-                setAnswerArray([]);
-                setAnswerArr('');
-                setAnswerSt([]);
-                setAnswerS('');
-                setQuestionN('');
-                setPointS('');
+        if (!type) {
+            if (
+                answerArray.length &&
+                JSON.stringify(answerArray).length < 300 &&
+                answerSt.length &&
+                JSON.stringify(answerSt).length < 300 &&
+                questionN &&
+                pointS
+            ) {
+                const res = await questionAPI.add(
+                    questionN,
+                    Number(pointS),
+                    result.Id,
+                    'array',
+                    JSON.stringify(answerArray),
+                    JSON.stringify(answerSt),
+                );
+                if (res === 'ok') {
+                    toast('Add successfully!');
+                    setReload(res);
+                    setAddData(false);
+                    setAnswerArray([]);
+                    setAnswerArr('');
+                    setAnswerSt([]);
+                    setAnswerS('');
+                    setQuestionN('');
+                    refetch();
+                    setPointS('');
+                }
+            }
+        } else {
+            if (questionN && pointS) {
+                const res = await questionAPI.add(questionN, Number(pointS), result.Id, 'string');
+                if (res === 'ok') {
+                    toast('Add successfully!');
+                    setReload(res);
+                    setAddData(false);
+                    setQuestionN('');
+                    refetch();
+                    setPointS('');
+                }
             }
         }
         if (!answerArray.length) {
@@ -277,7 +364,7 @@ const Result: React.FC<{
         }
         setErr(errF);
     };
-    const columnsAdd: ColumnsType<DataType> = [
+    let columnsAddArr: ColumnsType<DataType> = [
         {
             title: 'Index',
             dataIndex: 'index',
@@ -317,8 +404,38 @@ const Result: React.FC<{
             key: 'add',
         },
     ];
+    let columnsAddString: ColumnsType<DataType> = [
+        {
+            title: 'Index',
+            dataIndex: 'index',
+            key: 'index',
+        },
+        {
+            title: 'Name',
+            dataIndex: 'questionName',
+            key: 'questionName',
+            render: (text) => <P>{text}</P>,
+        },
 
-    const dataAdd: DataType[] = [
+        {
+            title: 'Point',
+            dataIndex: 'point',
+            key: 'point',
+        },
+
+        {
+            title: (
+                <Div
+                    onClick={handleAddQuestion}
+                    css="cursor: var(--pointer); padding: 5px 9px; background-color: #87b0d3; border-radius: 5px;"
+                >
+                    <P size="1.4rem">Save</P>
+                </Div>
+            ),
+            key: 'add',
+        },
+    ];
+    const dataAddArray: DataType[] = [
         {
             index: 66,
             key: 'addA',
@@ -357,14 +474,18 @@ const Result: React.FC<{
                             border: 0;
                             background-color: #c5c5c5;
                             padding: 5px 10px;
+                            cursor: var(--pointer);
                         }
                     `}
                 >
                     {answerArray.length ? (
                         <Div width="100%" display="block">
                             {answerArray.map((a, index) => (
-                                <Div css="position: relative; &:hover{    background-color: #d9d8d6; border-radius: 5px; padding: 2px 5px;}">
-                                    <P key={a} size="1.4rem" css="width: 100%; ">
+                                <Div
+                                    key={a}
+                                    css="position: relative; &:hover{    background-color: #d9d8d6; border-radius: 5px; padding: 2px 5px;}"
+                                >
+                                    <P size="1.4rem" css="width: 100%; ">
                                         {index + 1} -- {a}
                                     </P>
                                     <Div
@@ -380,30 +501,36 @@ const Result: React.FC<{
                     ) : (
                         ''
                     )}
-                    <Textarea
-                        placeholder="Add Answer"
-                        value={answerArr}
-                        onChange={(e) => {
-                            if (JSON.stringify(answerArray).length < 300) {
-                                setErr({ ...err, ansArr: false });
-                                setAnswerArr(e.target.value);
-                            }
-                        }}
-                    />
-                    <button
-                        onClick={() => {
-                            let checkA = false;
-                            answerArray.forEach((a) => {
-                                if (answerArr === a) checkA = true;
-                            });
-                            if (!checkA) {
-                                setAnswerArray([...answerArray, answerArr]);
-                            }
-                            setAnswerArr('');
-                        }}
-                    >
-                        Add
-                    </button>
+                    <Div>
+                        <Textarea
+                            placeholder="Add Answer"
+                            value={answerArr}
+                            onChange={(e) => {
+                                if (JSON.stringify(answerArray).length < 300) {
+                                    setErr({ ...err, ansArr: false });
+                                    setAnswerArr(e.target.value);
+                                }
+                            }}
+                        />
+                        <button
+                            onClick={() => {
+                                let checkA = false;
+                                if (answerArr) {
+                                    answerArray.forEach((a) => {
+                                        if (answerArr === a) checkA = true;
+                                    });
+                                    if (!checkA) {
+                                        setAnswerArray([...answerArray, answerArr]);
+                                    }
+                                    setAnswerArr('');
+                                } else {
+                                    setErr({ ...err, ansArr: true });
+                                }
+                            }}
+                        >
+                            <AddI />
+                        </button>
+                    </Div>
                 </Div>
             ),
             answer: (
@@ -423,14 +550,18 @@ const Result: React.FC<{
                             border: 0;
                             background-color: #c5c5c5;
                             padding: 5px 10px;
+                            cursor: var(--pointer);
                         }
                     `}
                 >
                     {answerSt.length ? (
                         <Div width="100%" display="block">
                             {answerSt.map((a, index) => (
-                                <Div css="position: relative; &:hover{    background-color: #d9d8d6; border-radius: 5px; padding: 2px 5px;}">
-                                    <P key={a} size="1.4rem" css="width: 100%; ">
+                                <Div
+                                    key={a}
+                                    css="position: relative; &:hover{    background-color: #d9d8d6; border-radius: 5px; padding: 2px 5px;}"
+                                >
+                                    <P size="1.4rem" css="width: 100%; ">
                                         {index + 1} -- {a}
                                     </P>
                                     <Div
@@ -446,34 +577,40 @@ const Result: React.FC<{
                     ) : (
                         ''
                     )}
-                    <Textarea
-                        placeholder="Correction answer"
-                        value={answerS}
-                        onChange={(e) => {
-                            if (JSON.stringify(answerSt).length < 300) {
-                                setAnswerS(e.target.value);
-                                setErr({ ...err, ansS: false });
-                            }
-                        }}
-                    />
-                    <button
-                        onClick={() => {
-                            let checkA = false;
-                            if (answerArray.some((answer) => answer === answerS)) {
-                                answerSt.forEach((a) => {
-                                    if (answerArr === a) checkA = true;
-                                });
-                                if (!checkA) {
-                                    setAnswerSt([...answerSt, answerS]);
+                    <Div>
+                        <Textarea
+                            placeholder="Correction answer"
+                            value={answerS}
+                            onChange={(e) => {
+                                if (JSON.stringify(answerSt).length < 300) {
+                                    setAnswerS(e.target.value);
+                                    setErr({ ...err, ansS: false });
                                 }
-                                setAnswerS('');
-                            } else {
-                                setErr({ ...err, ansS: true });
-                            }
-                        }}
-                    >
-                        Add
-                    </button>
+                            }}
+                        />
+                        <button
+                            onClick={() => {
+                                let checkA = false;
+                                if (answerS) {
+                                    if (answerArray.some((answer) => answer === answerS)) {
+                                        answerSt.forEach((a) => {
+                                            if (answerArr === a) checkA = true;
+                                        });
+                                        if (!checkA) {
+                                            setAnswerSt([...answerSt, answerS]);
+                                        }
+                                        setAnswerS('');
+                                    } else {
+                                        setErr({ ...err, ansS: true });
+                                    }
+                                } else {
+                                    setErr({ ...err, ansS: true });
+                                }
+                            }}
+                        >
+                            <AddI />
+                        </button>
+                    </Div>
                 </Div>
             ),
             point: (
@@ -494,37 +631,165 @@ const Result: React.FC<{
             ),
         },
     ];
+    const dataAddString: DataType[] = [
+        {
+            index: 66,
+            key: 'addS',
+            questionName: (
+                <Textarea
+                    placeholder="Question Name"
+                    css={`
+                        outline: none;
+                        padding: 5px;
+                        border-radius: 5px;
+                        border-color: ${err.name ? 'red' : ''};
+                    `}
+                    value={questionN}
+                    onChange={(e) => {
+                        if (e.target.value.length < 300) {
+                            setQuestionN(e.target.value);
+                            setErr({ ...err, name: false });
+                        }
+                    }}
+                />
+            ),
+
+            point: (
+                <Input
+                    type="number"
+                    placeholder="Point"
+                    value={pointS}
+                    css={`
+                        padding: 3px 4px;
+                        width: 80px;
+                        border-color: ${err.point ? 'red' : ''};
+                    `}
+                    onChange={(e) => {
+                        setPointS(e.target.value);
+                        setErr({ ...err, point: false });
+                    }}
+                />
+            ),
+        },
+    ];
 
     data?.map((d, index) => {
-        dataq.push({
-            id: d.id,
-            key: d.questionName,
-            index: index + 1,
-            questionName: d.questionName,
-            answerArray: (
-                <Div width="auto" display="block">
-                    {JSON.parse(d.answerArray).map((a: string, index: number) => (
-                        <P key={a} size="1.4rem" css="width: 100%;">
-                            {index + 1} -- {a}
-                        </P>
-                    ))}
-                </Div>
-            ),
-            answer: (
-                <Div width="auto" display="block">
-                    {JSON.parse(d.answer).map((a: string, index: number) => (
-                        <P key={a} size="1.4rem" css="width: 100%;">
-                            {index + 1} -- {a}
-                        </P>
-                    ))}
-                </Div>
-            ),
-            point: d.point,
-            createdAt: moment(d.createdAt).format('YYYY-MM-DD HH:mm:ss'),
-        });
+        console.log('yes array', d);
+
+        if (d.answerType === 'array') {
+            console.log('yes array');
+            dataq.push({
+                id: d.id,
+                key: d.questionName + d.id,
+                index: index + 1,
+                questionName: d.questionName,
+                answerType: d.answerType,
+                answerArray: (
+                    <Div width="auto" display="block">
+                        {JSON.parse(d.answerArray).map((a: string, index: number) => (
+                            <P key={a} size="1.4rem" css="width: 100%;">
+                                {index + 1} -- {a}
+                            </P>
+                        ))}
+                    </Div>
+                ),
+                answer: (
+                    <Div width="auto" display="block">
+                        {JSON.parse(d.answer).map((a: string, index: number) => (
+                            <P key={a} size="1.4rem" css="width: 100%;">
+                                {index + 1} -- {a}
+                            </P>
+                        ))}
+                    </Div>
+                ),
+                point: d.point,
+                createdAt: moment(d.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+            });
+        } else {
+            dataq.push({
+                id: d.id,
+                key: d.questionName,
+                answerType: d.answerType,
+                index: index + 1,
+                questionName: d.questionName,
+                point: d.point,
+                createdAt: moment(d.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+            });
+        }
     });
-    const handleUpdate = async (id: string) => {};
-    const columnsUpdate: ColumnsType<DataType> = [
+    const handleUpdate = async (id: string) => {
+        let checkUpdata = err;
+        if (type === 'array') {
+            if (!upData.questionN) checkUpdata.name = true;
+            if (!upData.answerArray.length) checkUpdata.ansArr = true;
+            if (!upData.answerSt.length) checkUpdata.ansS = true;
+            if (!upData.pointS) checkUpdata.point = true;
+            if (
+                JSON.stringify(isUpdate.current) !== JSON.stringify(upData) &&
+                upData.id &&
+                upData.partId &&
+                upData.occupation &&
+                user?.id &&
+                upData.answerArray.length &&
+                upData.questionN &&
+                upData.answerSt.length &&
+                upData.pointS
+            ) {
+                const res = await questionAPI.update(
+                    upData.id,
+                    user.id,
+                    upData.partId,
+                    upData.occupation,
+                    upData.questionN,
+                    upData.pointS,
+                    type,
+                    JSON.stringify(upData.answerArray),
+                    JSON.stringify(upData.answerSt),
+                );
+                if (res) {
+                    setReload(`${Math.random() * 100}updateQuestion`);
+                    toast('Update successful');
+                    setUpdateF('');
+                }
+            } else {
+                console.log(err);
+
+                setErr({ ...err });
+            }
+        } else {
+            if (!upData.questionN) checkUpdata.name = true;
+            if (!upData.pointS) checkUpdata.point = true;
+            if (
+                JSON.stringify(isUpdate.current) !== JSON.stringify(upData) &&
+                upData.id &&
+                upData.partId &&
+                upData.occupation &&
+                user?.id &&
+                upData.questionN &&
+                upData.pointS
+            ) {
+                const res = await questionAPI.update(
+                    upData.id,
+                    user.id,
+                    upData.partId,
+                    upData.occupation,
+                    upData.questionN,
+                    upData.pointS,
+                    type,
+                );
+                if (res) {
+                    setReload(`${Math.random() * 100}updateQuestion`);
+                    toast('Update successful');
+                    setUpdateF('');
+                }
+            } else {
+                console.log(err);
+                setErr({ ...err });
+            }
+        }
+        console.log(upData, 'update');
+    };
+    let columnsUpdate: ColumnsType<DataType> = [
         {
             title: 'Index',
             dataIndex: 'index',
@@ -592,180 +857,355 @@ const Result: React.FC<{
             ),
         },
     ];
+    if (type === 'string')
+        columnsUpdate = columnsUpdate.filter((co) => co.title !== 'Answer' && co.title !== 'Answer Array');
+    console.log(dataq, 'dataq');
+
     const dataUpdate = dataq
-        .filter((d) => d.id === update)
+        .filter((d) => d.id === updateF)
         .map((d) => {
-            if (d.id === update) {
-                const ddd = data?.filter((dr) => dr.id === d.id)[0].answerArray
-                    ? JSON.parse(data?.filter((dr) => dr.id === d.id)[0].answerArray)
-                    : [];
-                const fff = data?.filter((dr) => dr.id === d.id)[0].answer
-                    ? JSON.parse(data?.filter((dr) => dr.id === d.id)[0].answer)
-                    : [];
+            if (d.id === updateF) {
+                const ddd = upData.answerArray;
+                console.log('111', d);
+
+                const fff = upData.answerSt;
+
                 d.questionName = (
                     <Textarea
-                        value={question.Name}
-                        onChange={(e) => setQuestion({ ...question, Name: e.target.value })}
-                        css={`
-                            padding: 3px;
-                            border-radius: 5px;
-                            margin-right: 3px;
-                        `}
-                    />
-                );
-                d.answerArray = (
-                    <Div
-                        wrap="wrap"
-                        css={`
-                            justify-content: space-around;
-                            textarea {
-                                outline: none;
-                                padding: 5px;
-                                border-radius: 5px;
-                                border-color: ${err.ansArr ? 'red' : ''};
-                            }
-                            button {
-                                margin-top: 5px;
-                                border-radius: 5px;
-                                border: 0;
-                                background-color: #c5c5c5;
-                                padding: 5px 10px;
-                            }
-                        `}
-                    >
-                        {ddd.length ? (
-                            <Div width="100%" display="block" css="margin-bottom: 4px;">
-                                {ddd.map((a: string, index: number) => (
-                                    <Div
-                                        key={a}
-                                        css="position: relative; cursor: var(--pointer); &:hover{    background-color: #d9d8d6; border-radius: 5px; padding: 2px 5px;}"
-                                    >
-                                        <P size="1.4rem" css="width: 100%; ">
-                                            {index + 1} -- {a}
-                                        </P>
-                                        <Div
-                                            width="auto"
-                                            css="font-size: 17px; padding: 2px; cursor: var(--pointer); position: absolute; top: 2px; right: 0;"
-                                            onClick={() => setAnswerArray((pre) => pre.filter((aR) => aR !== a))}
-                                        >
-                                            <CloseI />
-                                        </Div>
-                                    </Div>
-                                ))}
-                            </Div>
-                        ) : (
-                            ''
-                        )}
-                        <Textarea
-                            value={question.AnswerArray}
-                            onChange={(e) => setQuestion({ ...question, Name: e.target.value })}
-                            css={`
-                                padding: 3px;
-                                border-radius: 5px;
-                                margin-right: 3px;
-                            `}
-                        />
-                        <button
-                            onClick={() => {
-                                let checkA = false;
-                                answerArray.forEach((a) => {
-                                    if (answerArr === a) checkA = true;
-                                });
-                                if (!checkA) {
-                                    setAnswerArray([...answerArray, answerArr]);
-                                }
-                                setAnswerArr('');
-                            }}
-                        >
-                            Change
-                        </button>
-                    </Div>
-                );
-                d.answer = (
-                    <Div
-                        wrap="wrap"
-                        css={`
-                            justify-content: space-around;
-                            textarea {
-                                outline: none;
-                                padding: 5px;
-                                border-radius: 5px;
-                                border-color: ${err.ansArr ? 'red' : ''};
-                            }
-                            button {
-                                margin-top: 5px;
-                                border-radius: 5px;
-                                border: 0;
-                                background-color: #c5c5c5;
-                                padding: 5px 10px;
-                            }
-                        `}
-                    >
-                        {fff.length ? (
-                            <Div width="100%" display="block" css="margin-bottom: 4px;">
-                                {fff.map((a: string, index: number) => (
-                                    <Div
-                                        key={a}
-                                        css="position: relative; cursor: var(--pointer); &:hover{    background-color: #d9d8d6; border-radius: 5px; padding: 2px 5px;}"
-                                    >
-                                        <P size="1.4rem" css="width: 100%; ">
-                                            {index + 1} -- {a}
-                                        </P>
-                                        <Div
-                                            width="auto"
-                                            css="font-size: 17px; padding: 2px; cursor: var(--pointer); position: absolute; top: 2px; right: 0;"
-                                            onClick={() => setAnswerArray((pre) => pre.filter((aR) => aR !== a))}
-                                        >
-                                            <CloseI />
-                                        </Div>
-                                    </Div>
-                                ))}
-                            </Div>
-                        ) : (
-                            ''
-                        )}
-                        <Textarea
-                            value={question.Answer}
-                            onChange={(e) => setQuestion({ ...question, Answer: e.target.value })}
-                            css={`
-                                padding: 3px;
-                                border-radius: 5px;
-                                margin-right: 3px;
-                            `}
-                        />
-                        <button
-                            onClick={() => {
-                                let checkA = false;
-                                answerArray.forEach((a) => {
-                                    if (answerArr === a) checkA = true;
-                                });
-                                if (!checkA) {
-                                    setAnswerArray([...answerArray, answerArr]);
-                                }
-                                setAnswerArr('');
-                            }}
-                        >
-                            Change
-                        </button>
-                    </Div>
-                );
-                d.point = (
-                    <Textarea
-                        value={question.Point}
+                        value={upData.questionN}
                         onChange={(e) => {
-                            if (!isNaN(Number(e.target.value)))
-                                setQuestion({ ...question, Point: Number(e.target.value) });
+                            if (!e.target.value) {
+                                setErr({ ...err, name: true });
+                            } else {
+                                setErr({ ...err, name: false });
+                            }
+                            setUpData({ ...upData, questionN: e.target.value });
                         }}
                         css={`
                             padding: 3px;
                             border-radius: 5px;
                             margin-right: 3px;
+                            border-color: ${err.name ? 'red' : ''};
+                        `}
+                    />
+                );
+                if (d.answerType === 'array') {
+                    d.answerArray = (
+                        <Div
+                            wrap="wrap"
+                            css={`
+                                justify-content: space-around;
+                                textarea {
+                                    outline: none;
+                                    padding: 5px;
+                                    border-radius: 5px;
+                                    border-color: ${err.ansArr ? 'red' : ''};
+                                }
+                                button {
+                                    margin-top: 5px;
+                                    border-radius: 5px;
+                                    border: 0;
+                                    background-color: #c5c5c5;
+                                    padding: 5px 10px;
+                                    cursor: var(--pointer);
+                                }
+                            `}
+                        >
+                            {ddd.length ? (
+                                <Div width="100%" display="block" css="margin-bottom: 4px;">
+                                    {ddd.map((a: string, index: number) => (
+                                        <Div
+                                            key={a}
+                                            css={`
+                                                position: relative;
+                                                cursor: var(--pointer);
+                                                &:hover {
+                                                    background-color: #d9d8d6;
+                                                }
+                                                background-color: ${upData.which?.aArr === index + 1 ? '#dadada' : ''};
+                                                padding: 2px 5px;
+                                                border-radius: 5px;
+                                            `}
+                                            onClick={() => {
+                                                setUpData({
+                                                    ...upData,
+                                                    answerArr: a,
+                                                    which: { ...upData.which, aArr: index + 1 },
+                                                });
+                                            }}
+                                        >
+                                            <P size="1.4rem" css="width: 100%; ">
+                                                {index + 1} -- {a}
+                                            </P>
+                                            <Div
+                                                width="auto"
+                                                css="font-size: 17px; padding: 2px; cursor: var(--pointer); position: absolute; top: 2px; right: 0;"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const r = upData.answerArray.filter((aR) => aR !== a);
+                                                    setUpData((pre) => {
+                                                        return { ...pre, answerArray: r };
+                                                    });
+                                                }}
+                                            >
+                                                <CloseI />
+                                            </Div>
+                                        </Div>
+                                    ))}
+                                </Div>
+                            ) : (
+                                ''
+                            )}
+                            <Textarea
+                                value={upData.answerArr}
+                                onChange={(e) => {
+                                    setUpData({ ...upData, answerArr: e.target.value });
+                                    setErr({ ...err, ansArr: false });
+                                }}
+                                css={`
+                                    padding: 3px;
+                                    border-radius: 5px;
+                                    margin-right: 3px;
+                                    border-color: ${err.ansArr ? 'red' : ''};
+                                `}
+                            />
+                            <button
+                                onClick={() => {
+                                    let checkA = false;
+                                    const r = upData.answerArray.map((aR, index) => {
+                                        console.log('hehehehe', upData.which, index + 1);
+                                        if (index + 1 === upData.which?.aArr && upData.answerArr) {
+                                            checkA = true;
+                                            aR = upData.answerArr;
+                                            return aR;
+                                        }
+                                        return aR;
+                                    });
+
+                                    if (!checkA) {
+                                        upData.answerArray.forEach((a) => {
+                                            if (upData.answerArr === a) {
+                                                checkA = true;
+                                            }
+                                        });
+                                        console.log('dddcheck', checkA);
+
+                                        if (!checkA && upData.answerArr) {
+                                            console.log('ddd', checkA);
+
+                                            setUpData({
+                                                ...upData,
+                                                answerArray: [...upData.answerArray, upData.answerArr],
+                                                answerArr: '',
+                                            });
+                                        }
+                                    } else {
+                                        setUpData((pre) => {
+                                            return {
+                                                ...pre,
+                                                answerArray: r,
+                                                answerArr: '',
+                                                which: { ...upData.which, aArr: undefined },
+                                            };
+                                        });
+                                    }
+                                }}
+                            >
+                                {upData.which?.aArr ? `change ${upData.which?.aArr}` : 'add'}
+                            </button>
+                        </Div>
+                    );
+                    d.answer = (
+                        <Div
+                            wrap="wrap"
+                            css={`
+                                justify-content: space-around;
+                                textarea {
+                                    outline: none;
+                                    padding: 5px;
+                                    border-radius: 5px;
+                                }
+                                button {
+                                    margin-top: 5px;
+                                    border-radius: 5px;
+                                    border: 0;
+                                    background-color: #c5c5c5;
+                                    padding: 5px 10px;
+                                    cursor: var(--pointer);
+                                }
+                            `}
+                        >
+                            {fff.length ? (
+                                <Div width="100%" display="block" css="margin-bottom: 4px;">
+                                    {fff.map((a: string, index: number) => (
+                                        <Div
+                                            key={a}
+                                            css={`
+                                                position: relative;
+                                                cursor: var(--pointer);
+                                                &:hover {
+                                                    background-color: #d9d8d6;
+                                                }
+                                                background-color: ${upData.which?.aSt === index + 1 ? '#dadada' : ''};
+                                                padding: 2px 5px;
+                                                border-radius: 5px;
+                                            `}
+                                            onClick={() =>
+                                                setUpData({
+                                                    ...upData,
+                                                    answerS: a,
+                                                    which: { ...upData.which, aSt: index + 1 },
+                                                })
+                                            }
+                                        >
+                                            <P size="1.4rem" css="width: 100%; ">
+                                                {index + 1} -- {a}
+                                            </P>
+                                            <Div
+                                                width="auto"
+                                                css="font-size: 17px; padding: 2px; cursor: var(--pointer); position: absolute; top: 2px; right: 0;"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const r = upData.answerSt.filter((aR) => aR !== a);
+                                                    setUpData((pre) => {
+                                                        return { ...pre, answerSt: r };
+                                                    });
+                                                }}
+                                            >
+                                                <CloseI />
+                                            </Div>
+                                        </Div>
+                                    ))}
+                                </Div>
+                            ) : (
+                                ''
+                            )}
+                            <Textarea
+                                value={upData.answerS}
+                                onChange={(e) => {
+                                    setErr({ ...err, ansS: false });
+                                    setUpData({ ...upData, answerS: e.target.value });
+                                }}
+                                css={`
+                                    padding: 3px;
+                                    border-radius: 5px;
+                                    margin-right: 3px;
+                                    border-color: ${err.ansS ? 'red' : ''};
+                                `}
+                            />
+                            <button
+                                onClick={() => {
+                                    let checkA = false;
+                                    const r = upData.answerSt.map((aR, index) => {
+                                        console.log('hehehehe', upData.which, index + 1);
+                                        if (
+                                            index + 1 === upData.which?.aSt &&
+                                            upData.answerS &&
+                                            upData.answerArray.includes(upData.answerS)
+                                        ) {
+                                            checkA = true;
+                                            aR = upData.answerS;
+                                            return aR;
+                                        }
+                                        return aR;
+                                    });
+
+                                    if (!checkA) {
+                                        upData.answerSt.forEach((a) => {
+                                            if (upData.answerS === a) checkA = true;
+                                        });
+                                        console.log();
+
+                                        if (!checkA && upData?.answerS) {
+                                            if (upData.answerArray.includes(upData.answerS)) {
+                                                setUpData({
+                                                    ...upData,
+                                                    answerSt: [...upData?.answerSt, upData?.answerS],
+                                                    answerS: '',
+                                                });
+                                            } else {
+                                                setErr({ ...err, ansS: true });
+                                            }
+                                        }
+                                    } else {
+                                        setUpData((pre) => {
+                                            return {
+                                                ...pre,
+                                                answerSt: r,
+                                                answerS: '',
+                                                which: { ...upData.which, aSt: undefined },
+                                            };
+                                        });
+                                    }
+                                }}
+                            >
+                                {upData.which?.aSt ? `change ${upData.which?.aSt}` : 'add'}
+                            </button>
+                        </Div>
+                    );
+                }
+                d.point = (
+                    <Textarea
+                        value={upData.pointS}
+                        onChange={(e) => {
+                            if (!isNaN(Number(e.target.value)))
+                                setUpData({ ...upData, pointS: Number(e.target.value) });
+                            if (!e.target.value) {
+                                setErr({ ...err, point: true });
+                            } else {
+                                setErr({ ...err, point: false });
+                            }
+                        }}
+                        css={`
+                            padding: 3px;
+                            border-radius: 5px;
+                            margin-right: 3px;
+                            border-color: ${err.point ? 'red' : ''};
                         `}
                     />
                 );
             }
             return d;
         });
+    const handleSaveEdit = async (cateId: string) => {
+        const mockData: { TimeOut?: number; Name?: string; TimeType?: string } = {};
+        let ok = false;
+        if ((result.TimeOut ?? 0) !== valTimer) {
+            mockData.TimeOut = valTimer;
+            console.log('valTimer', result.TimeOut ?? 0, valTimer);
+
+            ok = true;
+        }
+        if ((result.TimeType ?? 'Minute') !== timer) {
+            mockData.TimeType = timer;
+            console.log('timer', timer);
+            ok = true;
+        }
+        if (catePart && result.Name !== catePart) {
+            mockData.Name = catePart;
+            ok = true;
+        }
+        if (ok) {
+            console.log('up', result.Name, catePart, mockData);
+            const res = await catePartsAPI.update({ Id: cateId, ...mockData, OccupationId: result.OccupationId });
+            console.log(res);
+            if (res) {
+                setEdit(false);
+                if (mockData?.Name) {
+                    const name = mockData.Name;
+                    setReChange((pre) => [...(pre ?? []), { id: cateId, name: 'name', val: name }]);
+                }
+                if (mockData?.TimeOut) {
+                    const TimeOut = mockData.TimeOut;
+                    setReChange((pre) => [...(pre ?? []), { id: cateId, name: 'timeOut', val: TimeOut }]);
+                }
+                if (mockData?.TimeType) {
+                    const TimeType = mockData.TimeType;
+                    setReChange((pre) => [...(pre ?? []), { id: cateId, name: 'timeType', val: TimeType }]);
+                }
+            }
+        }
+    };
     return (
         <Div width="82%" css="overflow: overlay; position: relative;">
             <Div
@@ -794,9 +1234,9 @@ const Result: React.FC<{
                     `}
                 >
                     <P
-                        onClick={() => setType(false)}
+                        onClick={() => setType('string')}
                         css={`
-                            ${!type ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}
+                            ${!(type === 'array') ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}
                         `}
                     >
                         String
@@ -857,9 +1297,9 @@ const Result: React.FC<{
                         </Div>
                     </Div>
                     <P
-                        onClick={() => setType(true)}
+                        onClick={() => setType('array')}
                         css={`
-                            ${type ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}
+                            ${type === 'array' ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}
                         `}
                     >
                         [Array]
@@ -877,25 +1317,24 @@ const Result: React.FC<{
                     `}
                 >
                     <H3 css="width: 100%; " size="1.4rem">
-                        {result.Name} ({' '}
                         {edit ? (
                             <Input
                                 type="text"
-                                value={point}
+                                value={catePart}
                                 onChange={(e) => {
-                                    if (!isNaN(Number(e.target.value))) setPoint(e.target.value);
+                                    setCatePart(e.target.value);
                                 }}
                                 css={`
                                     padding: 3px;
-                                    width: 45px;
+                                    width: 200px;
                                     border-radius: 5px;
                                     margin-right: 3px;
                                 `}
                             />
                         ) : (
-                            point
+                            catePart
                         )}{' '}
-                        points )
+                        ( {point} points )
                     </H3>
                     <Div
                         width="auto"
@@ -910,26 +1349,32 @@ const Result: React.FC<{
                         <SettingI />
                     </Div>
                 </Div>
-                <Div
-                    width="auto"
-                    css={`
-                        cursor: var(--pointer);
-                        color: #333;
-                        padding: 5px 10px;
-                        background-color: #42c0ff;
-                        border-radius: 5px;
-                        margin: 5px 0;
-                    `}
-                >
-                    <P size="1.3rem">Save</P>
-                </Div>
+                {edit && (
+                    <Div
+                        width="auto"
+                        css={`
+                            cursor: var(--pointer);
+                            color: #333;
+                            padding: 5px 10px;
+                            background-color: #42c0ff;
+                            border-radius: 5px;
+                            margin: 5px 0;
+                        `}
+                        onClick={() => handleSaveEdit(result.Id)}
+                    >
+                        <P size="1.3rem">Save</P>
+                    </Div>
+                )}
                 <Div
                     css={`
                         background-image: linear-gradient(45deg, #565656, #d0d0d0);
                         border-radius: 8px;
+                        tbody {
+                            background-color: #ffffff;
+                        }
                     `}
                 >
-                    {type ? (
+                    {type === 'array' ? ( // string or array
                         <Table
                             style={{ width: '100%' }}
                             columns={columns}
@@ -942,14 +1387,14 @@ const Result: React.FC<{
                         <Table
                             style={{ width: '100%' }}
                             columns={columns}
-                            dataSource={[]}
+                            dataSource={dataq}
                             pagination={{
                                 pageSize: 5,
                             }}
                         />
                     )}
                 </Div>
-                {update && (
+                {updateF && (
                     <Div
                         css={`
                             top: 0;
@@ -963,7 +1408,7 @@ const Result: React.FC<{
                                 background-color: #ffffff;
                             }
                         `}
-                        onClick={() => setUpdate('')}
+                        onClick={() => setUpdateF('')}
                     >
                         <Div onClick={(e) => e.stopPropagation()}>
                             <Table style={{ width: '75%' }} columns={columnsUpdate} dataSource={dataUpdate} />
@@ -980,11 +1425,18 @@ const Result: React.FC<{
                             overflow: overlay;
                             position: absolute;
                             background-color: #141414d4;
+                            tbody {
+                                background-color: #ffffff;
+                            }
                         `}
                         onClick={() => setAddData(false)}
                     >
                         <Div onClick={(e) => e.stopPropagation()}>
-                            <Table style={{ width: '75%' }} columns={columnsAdd} dataSource={dataAdd} />
+                            <Table
+                                style={{ width: '75%' }}
+                                columns={type ? columnsAddString : columnsAddArr}
+                                dataSource={type ? dataAddArray : dataAddString}
+                            />
                         </Div>
                     </Div>
                 )}

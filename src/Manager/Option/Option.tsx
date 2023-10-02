@@ -1,18 +1,18 @@
-'use client';
 import React, { useEffect, useState } from 'react';
 import styles from './option.module.scss';
-import { AddI, LoadingI, MinusI } from '../../assets/Icons/Icons';
+import { ActiveI, AddI, LoadingI, MinusI, OnlineI } from '../../assets/Icons/Icons';
 import { useQuery } from '@tanstack/react-query';
 import cateParts from '../../API/catePartsAPI/catePartsAPI';
 import catePartsAPI from '../../API/catePartsAPI/catePartsAPI';
 import { useSelector } from 'react-redux';
 import { PropsUserDataRD } from '../../redux/userData';
 import occupationAPI from '../../API/occupationAPI/occupationAPI';
-import { Div, DivLoading } from '../../styleComponent/styleComponent';
+import { Div, DivLoading, P } from '../../styleComponent/styleComponent';
 export interface PropsOccupationData {
     Id: string;
     userId: string;
     Name: string;
+    Active: boolean;
     createdAt: string;
     updatedAt: string;
     Cates: {
@@ -21,7 +21,6 @@ export interface PropsOccupationData {
             $id: string;
             CreatedAt: string;
             Id: string;
-            AnswerType: string;
             Name: string;
             OccupationId: string;
             TimeOut: number;
@@ -37,7 +36,6 @@ const Option: React.FC<{
                   $id: string;
                   CreatedAt: string;
                   Id: string;
-                  AnswerType: string;
                   Name: string;
                   OccupationId: string;
                   TimeOut: number;
@@ -47,7 +45,42 @@ const Option: React.FC<{
             | undefined
         >
     >;
-}> = ({ setResult }) => {
+    reChange:
+        | {
+              id: string;
+              name: string;
+              val: number | string;
+          }[]
+        | undefined;
+    result:
+        | {
+              $id: string;
+              CreatedAt: string;
+              Id: string;
+              Name: string;
+              OccupationId: string;
+              TimeOut: number;
+              TimeType: string;
+              UpdatedAt: string;
+          }
+        | undefined;
+    setCateJob: React.Dispatch<
+        React.SetStateAction<
+            | {
+                  id: string;
+                  name: string;
+                  jobName?: string;
+              }
+            | undefined
+        >
+    >;
+    catePart:
+        | {
+              id: string;
+              name: string;
+          }
+        | undefined;
+}> = ({ setResult, reChange, result, setCateJob, catePart }) => {
     const { user } = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
         return state.persistedReducer.userData;
     });
@@ -60,21 +93,19 @@ const Option: React.FC<{
     const [cate, setCate] = useState<string>(''); // data catePart
     const [candidate, setCandidate] = useState<{
         title: string;
-        position: string[];
+        position: { id: string; name: string }[];
     }>({
         title: 'Candidates',
-        position: ['All candidates', 'Candidates register', 'Success candidates', 'Failed candidates'],
+        position: [
+            { id: 'all', name: 'All candidates' },
+            { id: 'register', name: 'Candidates register' },
+            { id: 'success', name: 'Success candidates' },
+            { id: 'failed', name: 'Failed candidates' },
+        ],
     });
-    const { data } = useQuery({
-        queryKey: ['JobCateParts', 1],
-        enabled: user?.id ? true : false,
-        staleTime: 60 * 1000,
-        queryFn: async () => {
-            const rr: PropsOccupationData[] = await occupationAPI.getOccupation(user?.id);
-            return rr;
-        },
-    });
-    console.log(data, 'data Oc');
+
+    const [dataQue, setDataQue] = useState<PropsOccupationData[]>([]);
+
     const [datas, setData] = useState<
         {
             id: string;
@@ -83,6 +114,7 @@ const Option: React.FC<{
                 | {
                       id: string;
                       title: string;
+                      active: boolean;
                       requirements: (
                           | {
                                 title: string;
@@ -103,34 +135,95 @@ const Option: React.FC<{
         },
     ]);
     useEffect(() => {
-        if (data) {
-            let items: any = [];
-            if (data?.length) {
-                data.forEach((d) => {
-                    items = datas.map((dd) => {
-                        if (dd.title === 'Jobs') {
-                            dd.position.push({
-                                id: d.Id,
-                                title: d.Name,
-                                requirements: [
-                                    { title: 'Information' },
-                                    {
-                                        title: 'Question',
-                                        val: d.Cates?.$values.map((c) => {
-                                            // get Id catePart
-                                            return { id: c.Id, name: c.Name };
-                                        }),
-                                    },
-                                ],
+        fetch();
+        async function fetch() {
+            const data: PropsOccupationData[] = await occupationAPI.getOccupation(user?.id);
+            if (data) {
+                let items: any = [];
+                if (data?.length) {
+                    // reFix data option
+                    data.forEach((d) => {
+                        items = datas.map((dd) => {
+                            if (dd.title === 'Jobs') {
+                                dd.position.push({
+                                    id: d.Id,
+                                    title: d.Name,
+                                    active: d.Active,
+                                    requirements: [
+                                        { title: 'Information' },
+                                        {
+                                            title: 'Question',
+                                            val: d.Cates?.$values.map((c) => {
+                                                // get Id catePart
+                                                return { id: c.Id, name: c.Name };
+                                            }),
+                                        },
+                                    ],
+                                });
+                                return dd;
+                            }
+                        });
+                    });
+                }
+                if (data) setDataQue(data);
+                setData(items);
+            }
+        }
+    }, []);
+    useEffect(() => {
+        if (reChange) {
+            const newPre = datas.map((d) => {
+                d.position.map((p) => {
+                    p.requirements.map((r) => {
+                        r.val?.map((q) => {
+                            reChange.forEach((re) => {
+                                if (
+                                    typeof re.val === 'string' &&
+                                    re.id === q.id &&
+                                    re.name === 'name' &&
+                                    re.val !== q.name
+                                ) {
+                                    // the field name will change when update name
+                                    q.name = re.val;
+                                }
                             });
-                            return dd;
+
+                            return q;
+                        });
+                        return r;
+                    });
+                    return p;
+                });
+                return d;
+            });
+            const asd = dataQue.map((d) => {
+                d.Cates.$values.map((c) => {
+                    reChange.forEach((re) => {
+                        if (
+                            typeof re.val === 'number' &&
+                            re.id === c.Id &&
+                            re.name === 'timeOut' &&
+                            re.val !== c.TimeOut
+                        ) {
+                            c.TimeOut = re.val;
+                        }
+                        if (
+                            typeof re.val === 'string' &&
+                            re.id === c.Id &&
+                            re.name === 'timeType' &&
+                            re.val !== c.TimeType
+                        ) {
+                            c.TimeType = re.val;
                         }
                     });
+                    return c;
                 });
-            }
-            setData(items);
+                return d;
+            });
+            setDataQue([...asd]);
+            setData([...newPre]);
         }
-    }, [data]);
+    }, [reChange]);
     const handleAdd = async (title: string) => {
         // Occupation
         setLoading(true);
@@ -151,11 +244,16 @@ const Option: React.FC<{
                                 t.position.push({
                                     id: res.id,
                                     title: firstData,
+                                    active: false,
                                     requirements: [
                                         { title: 'Information' },
                                         {
                                             title: 'Question',
-                                            val: [],
+                                            val: [
+                                                { id: res.id_f, name: res.name_f },
+                                                { id: res.id_s, name: res.name_s },
+                                                { id: res.id_t, name: res.name_t },
+                                            ],
                                         },
                                     ],
                                 });
@@ -246,6 +344,24 @@ const Option: React.FC<{
             console.log(res, 'res delete job');
         }
     };
+    const handleActive = async (id: string, active: boolean) => {
+        const ok = window.confirm(`Are you sure you want to ${active ? 'private' : 'public'} this job?`);
+        if (ok && user?.id && id) {
+            const res = await occupationAPI.active(id, user.id);
+            if (res.status) {
+                const newDD = datas.map((p) => {
+                    p.position.map((po) => {
+                        if (po.id === id) {
+                            po.active = res.active;
+                        }
+                        return po;
+                    });
+                    return p;
+                });
+                setData(newDD);
+            }
+        }
+    };
     return (
         <>
             {datas.map((op) => (
@@ -290,22 +406,42 @@ const Option: React.FC<{
                                     }}
                                 >
                                     {po.title}
-                                    <Div
-                                        width="auto"
-                                        css={`
-                                            padding: 3px 7px;
-                                            &:hover {
-                                                color: #9ef3f7;
-                                                font-size: 20px;
-                                            }
-                                        `}
-                                        onClick={(e) => {
-                                            // delete Job
-                                            e.stopPropagation();
-                                            handleRemove(po.id, po.title);
-                                        }}
-                                    >
-                                        <MinusI />
+                                    <Div width="auto">
+                                        <Div
+                                            width="auto"
+                                            css={`
+                                                font-size: 19px;
+                                                color: ${po.active ? '#87ed7c' : '#f74747'};
+                                                padding: 3px 7px;
+                                                &:hover {
+                                                    color: ${po.active ? '#f74747' : '#87ed7c'};
+                                                    font-size: 22px;
+                                                }
+                                            `}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleActive(po.id, po.active);
+                                            }}
+                                        >
+                                            <ActiveI />
+                                        </Div>
+                                        <Div
+                                            width="auto"
+                                            css={`
+                                                padding: 3px 7px;
+                                                &:hover {
+                                                    color: #9ef3f7;
+                                                    font-size: 20px;
+                                                }
+                                            `}
+                                            onClick={(e) => {
+                                                // delete Job
+                                                e.stopPropagation();
+                                                handleRemove(po.id, po.title);
+                                            }}
+                                        >
+                                            <MinusI />
+                                        </Div>
                                     </Div>
                                 </div>
                                 {jobShow === po.title && (
@@ -326,9 +462,25 @@ const Option: React.FC<{
                                                         className={styles.itemPositionIn}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
+                                                            setCateJob({
+                                                                id: po.id,
+                                                                name: qs.title,
+                                                                jobName: po.title,
+                                                            });
                                                             setShowQuest((pre) =>
                                                                 pre === po.title + qs.title ? '' : po.title + qs.title,
                                                             );
+                                                            dataQue?.forEach((d) => {
+                                                                d.Cates.$values.forEach((c) => {
+                                                                    if (
+                                                                        qs?.val &&
+                                                                        c.Id === qs.val[0].id &&
+                                                                        JSON.stringify(c) !== JSON.stringify(result)
+                                                                    ) {
+                                                                        setResult(c);
+                                                                    }
+                                                                });
+                                                            });
                                                         }}
                                                     >
                                                         {qs.title}
@@ -361,16 +513,25 @@ const Option: React.FC<{
                                                             key={v.id}
                                                             onClick={(e) => e.stopPropagation()}
                                                             justify="left"
-                                                            css="padding-left: 20px; "
+                                                            css={`
+                                                                padding-left: 20px;
+                                                                justify-content: space-between;
+                                                                p {
+                                                                    color: ${result?.Id === v.id ? '#9ef3f7' : ''};
+                                                                }
+                                                            `}
                                                         >
                                                             <p
                                                                 className={styles.itemPositionIn}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-
-                                                                    data?.forEach((d) => {
+                                                                    dataQue?.forEach((d) => {
                                                                         d.Cates.$values.forEach((c) => {
-                                                                            if (c.Id === v.id) {
+                                                                            if (
+                                                                                c.Id === v.id &&
+                                                                                JSON.stringify(c) !==
+                                                                                    JSON.stringify(result)
+                                                                            ) {
                                                                                 setResult(c);
                                                                             }
                                                                         });
@@ -445,9 +606,16 @@ const Option: React.FC<{
                 <h4>{candidate.title}</h4>
                 {candidate.position.map((po) => {
                     return (
-                        <p className={styles.itemPosition} key={po} onClick={() => setAddData('')}>
-                            {po}
-                        </p>
+                        <P
+                            className={styles.itemPosition}
+                            key={po.id}
+                            css={`
+                                color: ${po.name === catePart?.id ? '#9ef3f7' : ''};
+                            `}
+                            onClick={() => setCateJob({ id: po.name, name: 'candidate' })}
+                        >
+                            {po.name}
+                        </P>
                     );
                 })}
             </div>
