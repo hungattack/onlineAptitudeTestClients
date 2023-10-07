@@ -61,5 +61,14 @@ class Candidate {
             return errorHandling(err);
         }
     };
+    login = async (UserName: string, Password: string, occupationId?: string) => {
+        try {
+            const response = await http.post('/Candidate/Login', { UserName, Password, occupationId });
+            return response.data;
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
 }
 export default new Candidate();

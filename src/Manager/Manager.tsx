@@ -8,7 +8,7 @@ const Manager = () => {
     const [reChange, setReChange] = useState<{ id: string; name: string; val: number | string }[]>();
     const [cate, setCate] = useState<{ id: string; name: string; jobName?: string }>();
     const [result, setResult] = useState<{
-        $id: string;
+        $id?: string;
         CreatedAt: string;
         Id: string;
         Name: string;

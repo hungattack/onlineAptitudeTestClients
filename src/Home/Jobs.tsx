@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Div, H3, P } from '../styleComponent/styleComponent';
+import { Buttons, Div, H3, P } from '../styleComponent/styleComponent';
 import { Image } from 'antd';
 import Images from '../assets/images';
 import { Form, Input, Button } from 'antd';
@@ -151,7 +151,7 @@ const Jobs = () => {
                 </Div>
             )}
             <Div wrap="wrap" css="overflow-y: overlay; height: 95%; ">
-                {objectFit === 'one' && (
+                {objectFit && (
                     <Div
                         css="height: 100%; position: fixed; top: 59px; left: 0; background-color: #000000bd"
                         onClick={() => setObjectFit('')}
@@ -169,12 +169,12 @@ const Jobs = () => {
                             &:hover {
                                 background-color: #dee1e6;
                             }
-                            ${objectFit === 'one'
+                            ${objectFit === o.id
                                 ? 'z-index: 1; position: absolute; top: 50%; left: 50%; right: 50%; translate: -50% -50%; width: 50%; }'
                                 : ''}
                         `}
                         wrap="wrap"
-                        onClick={() => setObjectFit('one')}
+                        onClick={() => setObjectFit(o.id)}
                     >
                         <Div css="position: relative;justify-content: left;">
                             <Div
@@ -196,16 +196,17 @@ const Jobs = () => {
                                 <Image src={Images.male} />
                             </Div>
                             <P size="1.4rem">{o.user.name}</P>
-                            <Div
-                                width="auto"
-                                css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px; "
+                            <Buttons
+                                type="primary"
+                                css="width: auto; position: absolute; top: 5px; right: 10px;  &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px; "
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    setObjectFit('');
                                     setApply('28644857-9bd2-4acc-9033-e27510d0e429');
                                 }}
                             >
                                 Apply
-                            </Div>
+                            </Buttons>
                         </Div>
                         <Div wrap="wrap">
                             <Div justify="left">
@@ -215,885 +216,87 @@ const Jobs = () => {
                                 <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
                                     {o.name}
                                 </H3>
-                                {o.info &&
-                                    JSON.parse(o.info).map((fo: any, index: number) => (
-                                        <Div key={index} wrap="wrap">
-                                            <Div justify="left">
-                                                <H3
-                                                    size="1.4rem"
-                                                    css="width: fit-content; position: relative; text-align: start; "
-                                                >
-                                                    Address:
-                                                </H3>
-                                                <H3
-                                                    size="1.3rem"
-                                                    css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                                                >
-                                                    {fo.address}
-                                                </H3>
-                                            </Div>{' '}
-                                            <Div justify="left">
-                                                <H3
-                                                    size="1.4rem"
-                                                    css="width: fit-content; position: relative; text-align: start;"
-                                                >
-                                                    Company:
-                                                </H3>
-                                                <H3
-                                                    size="1.3rem"
-                                                    css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                                                >
-                                                    {fo.company}
-                                                </H3>
-                                            </Div>{' '}
-                                            <Div justify="left" css="border-bottom: 1px solid #333;">
-                                                <H3
-                                                    size="1.4rem"
-                                                    css="width: fit-content; position: relative; text-align: start;"
-                                                >
-                                                    {fo.name}:
-                                                </H3>
-                                                <H3
-                                                    size="1.3rem"
-                                                    css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                                                >
-                                                    {fo.contact}
-                                                </H3>
-                                            </Div>
-                                            <P
-                                                size="1.3rem"
-                                                css={`
-                                                    text-align: start;
-                                                    ${objectFit !== 'one'
-                                                        ? ' overflow: hidden; height: 43px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
-                                                        : ''}
-                                                `}
-                                            >
-                                                {fo.information}
-                                            </P>
-                                            <P
-                                                size="1.3rem"
-                                                css={`
-                                                    text-align: start;
-                                                    ${objectFit !== 'one'
-                                                        ? ' overflow: hidden; height: 43px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
-                                                        : ''}
-                                                `}
-                                            >
-                                                {fo.requirement}
-                                            </P>
-                                        </Div>
-                                    ))}
                             </Div>{' '}
+                            {o.info &&
+                                JSON.parse(o.info).map((fo: any, index: number) => (
+                                    <Div key={index} wrap="wrap">
+                                        <Div justify="left">
+                                            <H3
+                                                size="1.4rem"
+                                                css="width: fit-content; position: relative; text-align: start; "
+                                            >
+                                                Address:
+                                            </H3>
+                                            <H3
+                                                size="1.3rem"
+                                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
+                                            >
+                                                {fo.address}
+                                            </H3>
+                                        </Div>{' '}
+                                        <Div justify="left">
+                                            <H3
+                                                size="1.4rem"
+                                                css="width: fit-content; position: relative; text-align: start;"
+                                            >
+                                                Company:
+                                            </H3>
+                                            <H3
+                                                size="1.3rem"
+                                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
+                                            >
+                                                {fo.company}
+                                            </H3>
+                                        </Div>{' '}
+                                        <Div justify="left" css="border-bottom: 1px solid #333;">
+                                            <H3
+                                                size="1.4rem"
+                                                css="width: max-content; position: relative; text-align: start;"
+                                            >
+                                                {fo.name}:
+                                            </H3>
+                                            <H3
+                                                size="1.3rem"
+                                                css="text-align: left; padding-left: 7px; width: auto; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
+                                            >
+                                                {fo.contact}
+                                            </H3>
+                                        </Div>
+                                        {fo.information && (
+                                            <P
+                                                size="1.3rem"
+                                                css={`
+                                                    width: 100%;
+                                                    margin-top: 5px;
+                                                    text-align: start;
+                                                    ${objectFit !== 'one'
+                                                        ? ' overflow: hidden; height: 43px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
+                                                        : ''}
+                                                `}
+                                            >
+                                                <strong>Information:</strong> {fo.information}
+                                            </P>
+                                        )}
+                                        {fo.requirement && (
+                                            <P
+                                                size="1.3rem"
+                                                css={`
+                                                    width: 100%;
+                                                    margin-top: 5px;
+                                                    text-align: start;
+                                                    ${objectFit !== 'one'
+                                                        ? ' overflow: hidden; height: 43px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
+                                                        : ''}
+                                                `}
+                                            >
+                                                <strong>Requirement:</strong> {fo.requirement}
+                                            </P>
+                                        )}
+                                    </Div>
+                                ))}
                         </Div>
                     </Div>
                 ))}
-                <Div
-                    onClick={() => setObjectFit('one')}
-                    css={`
-                        margin-top: 20px;
-                        padding: 5px;
-                        background-color: #ffff;
-                        border-radius: 5px;
-                        cursor: var(--pointer);
-                        &:hover {
-                            background-color: #dee1e6;
-                        }
-                    `}
-                    wrap="wrap"
-                >
-                    <Div css="position: relative;justify-content: left;">
-                        <Div
-                            css={`
-                                width: 40px;
-                                height: 40px;
-                                margin-right: 5px;
-                                img {
-                                    object-fit: cover;
-                                    height: 100% !important;
-                                    border-radius: 50%;
-                                }
-                                div {
-                                    width: 100%;
-                                    height: 100%;
-                                }
-                            `}
-                        >
-                            <Image src={Images.male} />
-                        </Div>
-                        <P size="1.4rem">Hung</P>
-                        <Div
-                            width="auto"
-                            css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px;"
-                            onClick={() => setApply('28644857-9bd2-4acc-9033-e27510d0e429')}
-                        >
-                            Apply
-                        </Div>
-                    </Div>
-                    <Div wrap="wrap">
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Position:
-                            </H3>
-                            <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                Java
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start; ">
-                                Address:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                127 Doi can, Ba Dinh, Ha Noi
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Company:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                NeGA
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left" css="border-bottom: 1px solid #333;">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Contact:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                0974034981
-                            </H3>
-                        </Div>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Information:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>{' '}
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Requirement:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                    </Div>
-                </Div>
-                <Div
-                    onClick={() => setObjectFit('one')}
-                    css={`
-                        margin-top: 20px;
-                        padding: 5px;
-                        background-color: #ffff;
-                        border-radius: 5px;
-                        cursor: var(--pointer);
-                        &:hover {
-                            background-color: #dee1e6;
-                        }
-                    `}
-                    wrap="wrap"
-                >
-                    <Div css="position: relative;justify-content: left;">
-                        <Div
-                            css={`
-                                width: 40px;
-                                height: 40px;
-                                margin-right: 5px;
-                                img {
-                                    object-fit: cover;
-                                    height: 100% !important;
-                                    border-radius: 50%;
-                                }
-                                div {
-                                    width: 100%;
-                                    height: 100%;
-                                }
-                            `}
-                        >
-                            <Image src={Images.male} />
-                        </Div>
-                        <P size="1.4rem">Hung</P>
-                        <Div
-                            width="auto"
-                            css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px;"
-                        >
-                            Apply
-                        </Div>
-                    </Div>
-                    <Div wrap="wrap">
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Position:
-                            </H3>
-                            <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                Java
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start; ">
-                                Address:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                127 Doi can, Ba Dinh, Ha Noi
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Company:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                NeGA
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left" css="border-bottom: 1px solid #333;">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Contact:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                0974034981
-                            </H3>
-                        </Div>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Information:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Requirement:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                    </Div>
-                </Div>{' '}
-                <Div
-                    css={`
-                        margin-top: 20px;
-                        padding: 5px;
-                        background-color: #ffff;
-                        border-radius: 5px;
-                        cursor: var(--pointer);
-                        &:hover {
-                            background-color: #dee1e6;
-                        }
-                    `}
-                    wrap="wrap"
-                    onClick={() => setObjectFit('one')}
-                >
-                    <Div css="position: relative;justify-content: left;">
-                        <Div
-                            css={`
-                                width: 40px;
-                                height: 40px;
-                                margin-right: 5px;
-                                img {
-                                    object-fit: cover;
-                                    height: 100% !important;
-                                    border-radius: 50%;
-                                }
-                                div {
-                                    width: 100%;
-                                    height: 100%;
-                                }
-                            `}
-                        >
-                            <Image src={Images.male} />
-                        </Div>
-                        <P size="1.4rem">Hung</P>
-                        <Div
-                            width="auto"
-                            css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px;"
-                        >
-                            Apply
-                        </Div>
-                    </Div>
-                    <Div wrap="wrap">
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Position:
-                            </H3>
-                            <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                Java
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start; ">
-                                Address:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                127 Doi can, Ba Dinh, Ha Noi
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Company:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                NeGA
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left" css="border-bottom: 1px solid #333;">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Contact:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                0974034981
-                            </H3>
-                        </Div>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Information:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Requirement:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                    </Div>
-                </Div>{' '}
-                <Div
-                    css={`
-                        margin-top: 20px;
-                        padding: 5px;
-                        background-color: #ffff;
-                        border-radius: 5px;
-                        cursor: var(--pointer);
-                        &:hover {
-                            background-color: #dee1e6;
-                        }
-                    `}
-                    wrap="wrap"
-                    onClick={() => setObjectFit('one')}
-                >
-                    <Div css="position: relative;justify-content: left;">
-                        <Div
-                            css={`
-                                width: 40px;
-                                height: 40px;
-                                margin-right: 5px;
-                                img {
-                                    object-fit: cover;
-                                    height: 100% !important;
-                                    border-radius: 50%;
-                                }
-                                div {
-                                    width: 100%;
-                                    height: 100%;
-                                }
-                            `}
-                        >
-                            <Image src={Images.male} />
-                        </Div>
-                        <P size="1.4rem">Hung</P>
-                        <Div
-                            width="auto"
-                            css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px;"
-                        >
-                            Apply
-                        </Div>
-                    </Div>
-                    <Div wrap="wrap">
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Position:
-                            </H3>
-                            <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                Java
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start; ">
-                                Address:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                127 Doi can, Ba Dinh, Ha Noi
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Company:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                NeGA
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left" css="border-bottom: 1px solid #333;">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Contact:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                0974034981
-                            </H3>
-                        </Div>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Information:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Requirement:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                    </Div>
-                </Div>{' '}
-                <Div
-                    css={`
-                        margin-top: 20px;
-                        padding: 5px;
-                        background-color: #ffff;
-                        border-radius: 5px;
-                        cursor: var(--pointer);
-                        &:hover {
-                            background-color: #dee1e6;
-                        }
-                    `}
-                    wrap="wrap"
-                    onClick={() => setObjectFit('one')}
-                >
-                    <Div css="position: relative;justify-content: left;">
-                        <Div
-                            css={`
-                                width: 40px;
-                                height: 40px;
-                                margin-right: 5px;
-                                img {
-                                    object-fit: cover;
-                                    height: 100% !important;
-                                    border-radius: 50%;
-                                }
-                                div {
-                                    width: 100%;
-                                    height: 100%;
-                                }
-                            `}
-                        >
-                            <Image src={Images.male} />
-                        </Div>
-                        <P size="1.4rem">Hung</P>
-                        <Div
-                            width="auto"
-                            css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px;"
-                        >
-                            Apply
-                        </Div>
-                    </Div>
-                    <Div wrap="wrap">
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Position:
-                            </H3>
-                            <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                Java
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start; ">
-                                Address:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                127 Doi can, Ba Dinh, Ha Noi
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Company:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                NeGA
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left" css="border-bottom: 1px solid #333;">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Contact:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                0974034981
-                            </H3>
-                        </Div>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Information:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Requirement:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                    </Div>
-                </Div>{' '}
-                <Div
-                    css={`
-                        margin-top: 20px;
-                        padding: 5px;
-                        background-color: #ffff;
-                        border-radius: 5px;
-                        cursor: var(--pointer);
-                        &:hover {
-                            background-color: #dee1e6;
-                        }
-                    `}
-                    wrap="wrap"
-                    onClick={() => setObjectFit('one')}
-                >
-                    <Div css="position: relative;justify-content: left;">
-                        <Div
-                            css={`
-                                width: 40px;
-                                height: 40px;
-                                margin-right: 5px;
-                                img {
-                                    object-fit: cover;
-                                    height: 100% !important;
-                                    border-radius: 50%;
-                                }
-                                div {
-                                    width: 100%;
-                                    height: 100%;
-                                }
-                            `}
-                        >
-                            <Image src={Images.male} />
-                        </Div>
-                        <P size="1.4rem">Hung</P>
-                        <Div
-                            width="auto"
-                            css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px;"
-                        >
-                            Apply
-                        </Div>
-                    </Div>
-                    <Div wrap="wrap">
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Position:
-                            </H3>
-                            <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                Java
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start; ">
-                                Address:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                127 Doi can, Ba Dinh, Ha Noi
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Company:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                NeGA
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left" css="border-bottom: 1px solid #333;">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Contact:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                0974034981
-                            </H3>
-                        </Div>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Information:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Requirement:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                    </Div>
-                </Div>{' '}
-                <Div
-                    css={`
-                        margin-top: 20px;
-                        padding: 5px;
-                        background-color: #ffff;
-                        border-radius: 5px;
-                        cursor: var(--pointer);
-                        &:hover {
-                            background-color: #dee1e6;
-                        }
-                    `}
-                    wrap="wrap"
-                    onClick={() => setObjectFit('one')}
-                >
-                    <Div css="position: relative;justify-content: left;">
-                        <Div
-                            css={`
-                                width: 40px;
-                                height: 40px;
-                                margin-right: 5px;
-                                img {
-                                    object-fit: cover;
-                                    height: 100% !important;
-                                    border-radius: 50%;
-                                }
-                                div {
-                                    width: 100%;
-                                    height: 100%;
-                                }
-                            `}
-                        >
-                            <Image src={Images.male} />
-                        </Div>
-                        <P size="1.4rem">Hung</P>
-                        <Div
-                            width="auto"
-                            css="position: absolute; top: 5px; right: 10px;  background-color: #bebebe; &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px;"
-                        >
-                            Apply
-                        </Div>
-                    </Div>
-                    <Div wrap="wrap">
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Position:
-                            </H3>
-                            <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                Java
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start; ">
-                                Address:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                127 Doi can, Ba Dinh, Ha Noi
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Company:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                NeGA
-                            </H3>
-                        </Div>{' '}
-                        <Div justify="left" css="border-bottom: 1px solid #333;">
-                            <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                Contact:
-                            </H3>
-                            <H3
-                                size="1.3rem"
-                                css="text-align: left; padding-left: 7px; width: 100%; height: 20px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;"
-                            >
-                                0974034981
-                            </H3>
-                        </Div>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Information:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                        <P
-                            size="1.3rem"
-                            css={`
-                                text-align: start;
-                                overflow: hidden;
-                                height: 43px;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                            `}
-                        >
-                            <strong>Requirement:</strong> To fix the bottom height of a textarea and only increase the
-                            top height, you can achieve this by using CSS. You'll need to set an absolute height for the
-                            textarea and use the resize property to control the resizing behavior. Here's an example:
-                        </P>
-                    </Div>
-                </Div>
             </Div>
         </Div>
     );

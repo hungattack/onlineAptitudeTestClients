@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useRef, useState } from 'react';
-import { Div, H3, Input, P, Textarea } from '../../styleComponent/styleComponent';
+import { Div, H3, InputA, P, Textarea } from '../../styleComponent/styleComponent';
 import { Space, Table, Tag } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { AddI, CloseI, SettingI, TimerI } from '../../assets/Icons/Icons';
@@ -14,7 +14,7 @@ import catePartsAPI from '../../API/catePartsAPI/catePartsAPI';
 
 const Result: React.FC<{
     result: {
-        $id: string;
+        $id?: string;
         CreatedAt: string;
         Id: string;
         Name: string;
@@ -253,6 +253,8 @@ const Result: React.FC<{
         ansS: false,
         point: false,
     });
+    console.log('type', type);
+
     // update
     const isUpdate = useRef<{
         id: string;
@@ -307,7 +309,7 @@ const Result: React.FC<{
             ansS: false,
             point: false,
         };
-        if (!type) {
+        if (type === 'array') {
             if (
                 answerArray.length &&
                 JSON.stringify(answerArray).length < 300 &&
@@ -614,7 +616,7 @@ const Result: React.FC<{
                 </Div>
             ),
             point: (
-                <Input
+                <InputA
                     type="number"
                     placeholder="Point"
                     value={pointS}
@@ -655,7 +657,7 @@ const Result: React.FC<{
             ),
 
             point: (
-                <Input
+                <InputA
                     type="number"
                     placeholder="Point"
                     value={pointS}
@@ -1236,12 +1238,14 @@ const Result: React.FC<{
                     <P
                         onClick={() => setType('string')}
                         css={`
+                            width: max-content;
                             ${!(type === 'array') ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}
                         `}
                     >
-                        String
+                        Text Answer
                     </P>
                     <Div
+                        width="66%"
                         css={`
                             font-size: 30px;
                         `}
@@ -1250,12 +1254,12 @@ const Result: React.FC<{
                         {/* <TimerI /> <P size="1.3rem">2 hours</P> */}
                         {/* <P size="1.3rem">2</P> */}
                         {edit && (
-                            <Input
+                            <InputA
                                 type="text"
                                 value={valTimer}
                                 onChange={(e) => {
                                     const t = Number(e.target.value);
-                                    if (timer === 'Hour' && t < 25) {
+                                    if (timer === 'Hour' && t < 6) {
                                         setValTimer(t);
                                     } else if (timer === 'Minute' && t < 61) {
                                         setValTimer(t);
@@ -1283,6 +1287,7 @@ const Result: React.FC<{
                                         key={t}
                                         onClick={() => {
                                             setShowTimerType(false);
+                                            if (t === 'Hour') setValTimer(5);
                                             setTimer(t);
                                         }}
                                     >
@@ -1299,10 +1304,11 @@ const Result: React.FC<{
                     <P
                         onClick={() => setType('array')}
                         css={`
+                            width: max-content;
                             ${type === 'array' ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}
                         `}
                     >
-                        [Array]
+                        Answer Array
                     </P>
                 </Div>
 
@@ -1318,7 +1324,7 @@ const Result: React.FC<{
                 >
                     <H3 css="width: 100%; " size="1.4rem">
                         {edit ? (
-                            <Input
+                            <InputA
                                 type="text"
                                 value={catePart}
                                 onChange={(e) => {
@@ -1434,8 +1440,8 @@ const Result: React.FC<{
                         <Div onClick={(e) => e.stopPropagation()}>
                             <Table
                                 style={{ width: '75%' }}
-                                columns={type ? columnsAddString : columnsAddArr}
-                                dataSource={type ? dataAddArray : dataAddString}
+                                columns={type === 'string' ? columnsAddString : columnsAddArr}
+                                dataSource={type === 'string' ? dataAddString : dataAddArray}
                             />
                         </Div>
                     </Div>

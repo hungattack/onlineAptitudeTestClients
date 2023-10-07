@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
 import styles from './option.module.scss';
-import { ActiveI, AddI, LoadingI, MinusI, OnlineI } from '../../assets/Icons/Icons';
+import { ActiveI, AddI, LoadingI, MinusI, OnlineI, SuitCaseI, UserI } from '../../assets/Icons/Icons';
 import { useQuery } from '@tanstack/react-query';
 import cateParts from '../../API/catePartsAPI/catePartsAPI';
 import catePartsAPI from '../../API/catePartsAPI/catePartsAPI';
 import { useSelector } from 'react-redux';
 import { PropsUserDataRD } from '../../redux/userData';
 import occupationAPI from '../../API/occupationAPI/occupationAPI';
-import { Div, DivLoading, P } from '../../styleComponent/styleComponent';
+import { Buttons, Div, DivLoading, P } from '../../styleComponent/styleComponent';
 export interface PropsOccupationData {
     Id: string;
     userId: string;
@@ -18,7 +18,7 @@ export interface PropsOccupationData {
     Cates: {
         $id: string;
         $values: {
-            $id: string;
+            $id?: string;
             CreatedAt: string;
             Id: string;
             Name: string;
@@ -33,7 +33,7 @@ const Option: React.FC<{
     setResult: React.Dispatch<
         React.SetStateAction<
             | {
-                  $id: string;
+                  $id?: string;
                   CreatedAt: string;
                   Id: string;
                   Name: string;
@@ -54,7 +54,7 @@ const Option: React.FC<{
         | undefined;
     result:
         | {
-              $id: string;
+              $id?: string;
               CreatedAt: string;
               Id: string;
               Name: string;
@@ -84,6 +84,8 @@ const Option: React.FC<{
     const { user } = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
         return state.persistedReducer.userData;
     });
+    console.log(result, 'catePart');
+
     const [loading, setLoading] = useState<boolean>(false);
     const [jobShow, setJobShow] = useState<string>(''); // TO show the Job
     const [showQues, setShowQuest] = useState<string>(''); // to show the Option
@@ -93,9 +95,11 @@ const Option: React.FC<{
     const [cate, setCate] = useState<string>(''); // data catePart
     const [candidate, setCandidate] = useState<{
         title: string;
+        icon: ReactElement;
         position: { id: string; name: string }[];
     }>({
         title: 'Candidates',
+        icon: <UserI />,
         position: [
             { id: 'all', name: 'All candidates' },
             { id: 'register', name: 'Candidates register' },
@@ -103,13 +107,14 @@ const Option: React.FC<{
             { id: 'failed', name: 'Failed candidates' },
         ],
     });
-
+    const [err, setErr] = useState<{ id: string; value: String }>();
     const [dataQue, setDataQue] = useState<PropsOccupationData[]>([]);
 
     const [datas, setData] = useState<
         {
             id: string;
             title: string;
+            icon: ReactElement;
             position:
                 | {
                       id: string;
@@ -131,6 +136,7 @@ const Option: React.FC<{
         {
             id: 'Jobs',
             title: 'Jobs',
+            icon: <SuitCaseI />,
             position: [],
         },
     ]);
@@ -138,7 +144,7 @@ const Option: React.FC<{
         fetch();
         async function fetch() {
             const data: PropsOccupationData[] = await occupationAPI.getOccupation(user?.id);
-            if (data) {
+            if (data.length) {
                 let items: any = [];
                 if (data?.length) {
                     // reFix data option
@@ -226,8 +232,8 @@ const Option: React.FC<{
     }, [reChange]);
     const handleAdd = async (title: string) => {
         // Occupation
-        setLoading(true);
         if (user?.id && firstData) {
+            setLoading(true);
             const res = await occupationAPI.addOccupation(user.id, firstData);
             console.log(res, 'res addnew');
 
@@ -269,31 +275,76 @@ const Option: React.FC<{
     const handleAddCatePart = async (id: string) => {
         setLoading(true);
         if (id && cate) {
-            const res = await catePartsAPI.addCatePart(id, cate);
-            if (res?.id) {
-                setData((pre) =>
-                    pre.map((t) => {
-                        // check Does it already exist or not?
-                        t.position.map((p) => {
-                            if (!(p.id === res.id || p.title === cate)) {
-                                return p.requirements.map((req) => {
-                                    if (req.title === 'Question') {
-                                        req.val?.push({ id: res.id, name: cate });
-                                        return req;
-                                    }
-                                });
-                            }
-                            return p;
-                        });
-
-                        return t;
-                    }),
-                );
+            const res:
+                | {
+                      cate: {
+                          createdAt: string;
+                          id: string;
+                          name: string;
+                          occupationId: string;
+                          timeOut: number;
+                          timeType: string;
+                          updatedAt: string;
+                      };
+                  }
+                | string = await catePartsAPI.addCatePart(id, cate);
+            console.log(res, 'res');
+            if (typeof res === 'string') {
+                setErr({ id, value: res });
                 setCate('');
                 setLoading(false);
+            } else {
+                if (res?.cate.id) {
+                    setData((pre) =>
+                        pre.map((t) => {
+                            // check Does it already exist or not?
+                            t.position.map((p) => {
+                                if (!(p.id === res.cate.id || p.title === cate)) {
+                                    return p.requirements.map((req) => {
+                                        if (req.title === 'Question') {
+                                            req.val?.push({ id: res.cate.id, name: cate });
+                                            return req;
+                                        }
+                                    });
+                                }
+                                return p;
+                            });
+
+                            return t;
+                        }),
+                    );
+                    let check = false;
+                    dataQue.map((d) => {
+                        d.Cates.$values.map((c) => {
+                            if (c.Id === res.cate.id) {
+                                check = true;
+                            }
+                        });
+                    });
+                    if (!check) {
+                        const newDataQue = dataQue.map((d) => {
+                            if (d.Id === id) {
+                                d.Cates.$values.push({
+                                    Id: res.cate.id,
+                                    Name: res.cate.name,
+                                    OccupationId: res.cate.occupationId,
+                                    TimeOut: res.cate.timeOut,
+                                    TimeType: res.cate.timeType,
+                                    CreatedAt: res.cate.createdAt,
+                                    UpdatedAt: res.cate.updatedAt,
+                                });
+                            }
+                            return d;
+                        });
+                        setDataQue(newDataQue); // add
+                    }
+                    setCate('');
+                    setLoading(false);
+                }
             }
         }
     };
+    console.log(datas, 'datas');
     // if (p.title === jobShow) {
     //   console.log("t.position", t.position);
 
@@ -367,7 +418,12 @@ const Option: React.FC<{
             {datas.map((op) => (
                 <div className={styles.question} key={op.title}>
                     <h4>
-                        {op.title}
+                        <Div justify="left">
+                            <Div width="auto" css="margin-right: 5px;">
+                                {op.icon}
+                            </Div>
+                            {op.title}
+                        </Div>
                         {op.title === 'Jobs' && (
                             <span
                                 style={{
@@ -556,23 +612,28 @@ const Option: React.FC<{
                                                         </Div>
                                                     ))}
                                                 {addDataCate === qs.title && (
-                                                    <div className={styles.divAdd}>
-                                                        <input
-                                                            type="text"
-                                                            placeholder={qs.title}
-                                                            value={cate}
-                                                            onChange={(e) => setCate(e.target.value)}
-                                                        />
-                                                        <button onClick={() => handleAddCatePart(po.id)}>
-                                                            {loading ? (
-                                                                <DivLoading css="margin: 0;">
-                                                                    <LoadingI />
-                                                                </DivLoading>
-                                                            ) : (
-                                                                'Add'
-                                                            )}
-                                                        </button>
-                                                    </div>
+                                                    <>
+                                                        <div className={styles.divAdd}>
+                                                            <input // catePart
+                                                                type="text"
+                                                                placeholder={qs.title}
+                                                                value={cate}
+                                                                onChange={(e) => setCate(e.target.value)}
+                                                            />
+                                                            <Buttons
+                                                                type="primary"
+                                                                onClick={() => handleAddCatePart(po.id)}
+                                                                loading={loading}
+                                                            >
+                                                                Add
+                                                            </Buttons>
+                                                        </div>
+                                                        {err?.id === po.id && (
+                                                            <P size="1.3rem" css="color: #f85858;">
+                                                                {err.value}
+                                                            </P>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         ))}
@@ -589,21 +650,22 @@ const Option: React.FC<{
                                 value={firstData}
                                 onChange={(e) => setFirstData(e.target.value)}
                             />
-                            <button onClick={() => handleAdd(op.title)}>
-                                {loading ? (
-                                    <DivLoading css="margin: 0;">
-                                        <LoadingI />
-                                    </DivLoading>
-                                ) : (
-                                    'Add'
-                                )}
-                            </button>
+                            <Buttons type="primary" onClick={() => handleAdd(op.title)} loading={loading}>
+                                Add
+                            </Buttons>
                         </div>
                     )}
                 </div>
             ))}
             <div className={styles.question} style={{ textAlign: 'start' }}>
-                <h4>{candidate.title}</h4>
+                <Div justify="left">
+                    <h4>
+                        <Div width="auto" css="margin-right: 5px;">
+                            {candidate.icon}
+                        </Div>
+                        {candidate.title}
+                    </h4>
+                </Div>
                 {candidate.position.map((po) => {
                     return (
                         <P

@@ -63,6 +63,7 @@ import {
     MdOutlineWork,
     MdOutlineTitle,
     MdNightlightRound,
+    MdWork,
 } from 'react-icons/md';
 import { GoClockFill, GoDotFill, GoScreenFull, GoScreenNormal } from 'react-icons/go';
 import { FaPeopleArrows, FaAddressCard, FaUserFriends, FaBirthdayCake, FaRegSmileBeam } from 'react-icons/fa';
@@ -120,3 +121,4 @@ export const CloseEyeI = () => <AiOutlineEyeInvisible />;
 export const TimerI = () => <BiTimer />;
 export const MinusI = () => <AiOutlineMinus />;
 export const ActiveI = () => <GoDotFill />;
+export const SuitCaseI = () => <MdWork />;

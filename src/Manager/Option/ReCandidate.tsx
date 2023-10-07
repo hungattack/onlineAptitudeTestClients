@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Div, Input, P } from '../../styleComponent/styleComponent';
+import { Div, InputA, P } from '../../styleComponent/styleComponent';
 import { Space, Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { AddI } from '../../assets/Icons/Icons';
@@ -21,6 +21,7 @@ interface DataType {
     occupationId: string;
     phoneNumber: string;
     userName: string;
+    userId: string;
     password: string;
     occupation: {
         name: string;
@@ -38,6 +39,8 @@ const ReCandidate: React.FC<{
     const [account, setAccount] = useState<{ userName: string; password: string }>({ userName: '', password: '' });
     const [err, setErr] = useState<{ userName: boolean; password: boolean }>({ userName: false, password: false });
     const [generate, setGenerate] = useState<number | undefined>();
+    console.log(cate, 'cate');
+
     const { data, refetch } = useQuery({
         queryKey: ['Candidates', 1],
         queryFn: async () => {
@@ -45,7 +48,6 @@ const ReCandidate: React.FC<{
             return rs;
         },
     });
-
     let columns: ColumnsType<DataType> = [
         {
             title: 'Index',
@@ -112,7 +114,7 @@ const ReCandidate: React.FC<{
                     </Space>
                 ) : generate && record.id === generate ? (
                     <Space size="middle" key={record.id}>
-                        <Input
+                        <InputA
                             type="text"
                             placeholder="Generate user name"
                             css={`
@@ -126,7 +128,7 @@ const ReCandidate: React.FC<{
                                 setErr({ ...err, userName: false });
                             }}
                         />
-                        <Input
+                        <InputA
                             type="text"
                             placeholder="Generate password"
                             css={`
@@ -181,8 +183,10 @@ const ReCandidate: React.FC<{
                                                 account.password,
                                                 record.occupationId,
                                                 record.id,
-                                                user?.id,
+                                                record.userId,
                                             );
+                                            if (res === 'ok') refetch();
+                                            toast(res);
                                         }
                                         setErr({ ...check });
                                     }}
@@ -241,7 +245,7 @@ const ReCandidate: React.FC<{
                         onClick={async () => {
                             const ok = window.confirm('Do you want to delete this item?');
                             if (ok) {
-                                const res = await candidateAPI.delete(record.id, user?.id);
+                                const res = await candidateAPI.delete(record.id, record.userId);
                                 if (res === 'ok') {
                                     refetch();
                                     toast('Delete successful!');

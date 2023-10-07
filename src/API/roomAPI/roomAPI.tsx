@@ -2,10 +2,10 @@ import { AxiosError } from 'axios';
 import errorHandling from '../errorHandling';
 import http from '../../utils/http';
 
-class UserAPI {
-    GeById = async (id?: string) => {
+class Room {
+    getRoom = async (id: string) => {
         try {
-            const response = await http.get(`/User/GetById/${id}`);
+            const response = await http.get(`/Room/GetRoom/${id}`);
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;
@@ -13,4 +13,4 @@ class UserAPI {
         }
     };
 }
-export default new UserAPI();
+export default new Room();

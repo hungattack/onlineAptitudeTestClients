@@ -1,3 +1,4 @@
+import { Button, Input } from 'antd';
 import styled from 'styled-components';
 
 export const Div = styled.div<{
@@ -25,7 +26,7 @@ export const H3 = styled.h3<{ size?: string; css?: string }>`
     color: ${(props) => props.color};
     ${(props) => props.css};
 `;
-export const Input = styled.input<{ css?: string }>`
+export const InputA = styled(Input)<{ css?: string }>`
     color: ${(props) => props.color};
     ${(props) => props.css};
 `;
@@ -49,4 +50,7 @@ export const DivLoading = styled.div<{ css?: string }>`
             transform: rotate(360deg);
         }
     }
+`;
+export const Buttons = styled(Button)<{ css?: string }>`
+    ${(props) => props.css}
 `;
