@@ -24,7 +24,7 @@ import {
     IoArrowUndoCircleOutline,
     IoAdd,
 } from 'react-icons/io5';
-import { IoMdNotifications, IoIosSend, IoMdShareAlt, IoIosArrowRoundBack } from 'react-icons/io';
+import { IoMdNotifications, IoIosSend, IoMdShareAlt, IoIosArrowRoundBack, IoIosTimer } from 'react-icons/io';
 import {
     BiBullseye,
     BiDotsHorizontalRounded,
@@ -64,6 +64,7 @@ import {
     MdOutlineTitle,
     MdNightlightRound,
     MdWork,
+    MdTimerOff,
 } from 'react-icons/md';
 import { GoClockFill, GoDotFill, GoScreenFull, GoScreenNormal } from 'react-icons/go';
 import { FaPeopleArrows, FaAddressCard, FaUserFriends, FaBirthdayCake, FaRegSmileBeam } from 'react-icons/fa';
@@ -122,3 +123,5 @@ export const TimerI = () => <BiTimer />;
 export const MinusI = () => <AiOutlineMinus />;
 export const ActiveI = () => <GoDotFill />;
 export const SuitCaseI = () => <MdWork />;
+export const TimeOutI = () => <MdTimerOff />;
+export const DuraI = () => <IoIosTimer />;

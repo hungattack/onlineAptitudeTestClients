@@ -52,11 +52,11 @@ export interface PropsRoomData {
 }
 const TestingRoom = () => {
     const dispatch = useDispatch();
-    const { status, startTime, id_room } = useSelector(
+    const { status, startTime, id_room, cateP } = useSelector(
         (state: { persistedReducer: { testingData: PropsTestingDataRD } }) => state.persistedReducer.testingData,
     );
     const [start, setStart] = useState<string>('stop');
-    const [catePart, setCatePart] = useState<string>('');
+    const [catePart, setCatePart] = useState<string>(cateP);
     const [roomData, setRoomData] = useState<PropsRoomData>();
     const [code, setCode] = useState<string>(() => id_room ?? '');
     const [err, setErr] = useState<string>('');
@@ -142,9 +142,9 @@ const TestingRoom = () => {
                 setLoading(true);
                 const res: PropsRoomData | string = await roomAPI.getRoom(code);
                 if (typeof res !== 'string') {
-                    setCatePart(res?.Cates.$values[0].Id);
+                    setCatePart(cateP);
                     setRoomData(res);
-                    setStart('start');
+                    setStart('inCharger');
                     setEmpty('');
                 } else {
                     setEmpty(res);

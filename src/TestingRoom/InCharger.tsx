@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Div, H3, P } from '../styleComponent/styleComponent';
+import { Div, DivLoading, H3, P } from '../styleComponent/styleComponent';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
-import { CheckI, TimerI } from '../assets/Icons/Icons';
+import { CheckI, DuraI, TimeOutI, TimerI } from '../assets/Icons/Icons';
 import { Button, Checkbox, Input, Radio, RadioChangeEvent } from 'antd';
 import { PropsRoomData } from './TestingRoom';
 import { CheckboxValueType } from 'antd/es/checkbox/Group';
@@ -14,18 +14,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
     PropsTestingDataRD,
     setCandidateProcess,
+    setCateP,
     setChoiceRD,
     setEnd,
+    setStartRD,
     setValueInputRD,
     setValueRD,
 } from '../redux/testingData';
+import moment from 'moment';
 const InCharger: React.FC<{
     roomData: PropsRoomData;
     catePart: string; // first section
     setCatePart: React.Dispatch<React.SetStateAction<string>>;
 }> = ({ roomData, catePart, setCatePart }) => {
     const dispatch = useDispatch();
-    const { status, startTime, valueRD, valueInputRD, choicesRD } = useSelector(
+    const { status, startTime, canProcess, id_room } = useSelector(
         (state: { persistedReducer: { testingData: PropsTestingDataRD } }) => state.persistedReducer.testingData,
     );
     const [process, setProcess] = useState<{ id: string; index: number }[]>([]);
@@ -34,8 +37,8 @@ const InCharger: React.FC<{
     // value
     const [valueInput, setValueInput] = useState<{ id: string; value: string; index: number }[]>(() => {
         let data: { id: string; value: string; index: number }[] = [];
-        if (valueInputRD) {
-            data = JSON.parse(valueInputRD);
+        if (canProcess.length && canProcess.some((c) => c.id === catePart)) {
+            data = JSON.parse(canProcess.filter((c) => c.id === catePart)[0].valueInputRD);
         } else {
             roomData.Cates.$values.map((c) => {
                 if (c.Id === catePart) {
@@ -51,8 +54,8 @@ const InCharger: React.FC<{
     }); // for text
     const [value, setValue] = useState<{ id: string; value: string[]; index: number }[]>(() => {
         let data: { id: string; value: string[]; index: number }[] = [];
-        if (valueRD) {
-            data = JSON.parse(valueRD);
+        if (canProcess.length && canProcess.some((c) => c.id === catePart)) {
+            data = JSON.parse(canProcess.filter((c) => c.id === catePart)[0].valueRD);
         } else {
             roomData.Cates.$values.map((c) => {
                 if (c.Id === catePart)
@@ -73,8 +76,8 @@ const InCharger: React.FC<{
     const swiperRef = useRef<any>(null);
     const [choice, setChoice] = useState<{ id: string; value: string[]; index: number }[]>(() => {
         let data: { id: string; value: string[]; index: number }[] = [];
-        if (choicesRD) {
-            data = JSON.parse(choicesRD);
+        if (canProcess.length && canProcess.some((c) => c.id === catePart)) {
+            data = JSON.parse(canProcess.filter((c) => c.id === catePart)[0].choicesRD);
         } else {
             roomData.Cates.$values.map((c) => {
                 if (c.Id === catePart)
@@ -88,58 +91,106 @@ const InCharger: React.FC<{
         return data;
     }); // for checkbox;
     useEffect(() => {
-        if (!valueRD && !choicesRD && !valueInputRD) {
-            console.log('ccc');
+        dispatch(setCateP(catePart));
+        if (startTime.length > 1 && startTime.some((s) => s.id === catePart)) {
+            setValue(() => {
+                let data: { id: string; value: string[]; index: number }[] = [];
+                roomData.Cates.$values.map((c) => {
+                    if (c.Id === catePart || startTime.some((s) => s.id === c.Id)) {
+                        if (canProcess.length && canProcess.some((cs) => cs.id === c.Id && cs?.valueRD)) {
+                            data = JSON.parse(canProcess.filter((cd) => cd.id === c.Id)[0].valueRD);
+                        } else {
+                            c.Questions.$values.map((q, index) => {
+                                if (JSON.parse(q.Answer)?.length === 1 && q.AnswerType !== 'string') {
+                                    data.push({ id: q.Id, value: [], index });
+                                }
+                            });
+                        }
+                    }
+                });
+                return data;
+            });
+            setValueInput(() => {
+                let data: { id: string; value: string; index: number }[] = [];
+                roomData.Cates.$values.map((c) => {
+                    if (c.Id === catePart || startTime.some((s) => s.id === c.Id)) {
+                        if (canProcess.length && canProcess.some((cs) => cs.id === c.Id && cs?.valueInputRD)) {
+                            data = JSON.parse(canProcess.filter((cd) => cd.id === c.Id)[0].valueInputRD);
+                        } else {
+                            c.Questions.$values.map((q, index) => {
+                                if (q.AnswerType === 'string') {
+                                    data.push({ id: q.Id, value: '', index });
+                                }
+                            });
+                        }
+                    }
+                });
+                return data;
+            });
+            setChoice(() => {
+                let data: { id: string; value: string[]; index: number }[] = [];
+                roomData.Cates.$values.map((c) => {
+                    if (c.Id === catePart || startTime.some((s) => s.id === c.Id)) {
+                        if (canProcess.length && canProcess.some((cs) => cs.id === c.Id && cs?.choicesRD)) {
+                            data = JSON.parse(canProcess.filter((cd) => cd.id === c.Id)[0].choicesRD);
+                        } else {
+                            c.Questions.$values.map((q, index) => {
+                                if (JSON.parse(q.Answer)?.length > 1 && q.AnswerType !== 'string') {
+                                    data.push({ id: q.Id, value: [], index });
+                                }
+                            });
+                        }
+                    }
+                });
+                return data;
+            });
+        }
+    }, [catePart]);
+    useEffect(() => {
+        let check = false;
+        canProcess.map((c) => {
+            if (c.id === catePart) {
+                if (c.valueRD && c.valueRD !== JSON.stringify(value)) {
+                    dispatch(setValueRD({ value: JSON.stringify(value), id: catePart }));
+                }
+                if (c.valueInputRD && c.valueInputRD !== JSON.stringify(valueInput)) {
+                    dispatch(setValueInputRD({ valueInput: JSON.stringify(valueInput), id: catePart }));
+                }
+                if (c.choicesRD && c.choicesRD !== JSON.stringify(choice)) {
+                    dispatch(setChoiceRD({ choice: JSON.stringify(choice), id: catePart }));
+                }
+                check = true;
+            }
+        });
+        console.log(canProcess, catePart, 'catepar');
+
+        if (!check) {
             dispatch(
                 setCandidateProcess({
-                    value: JSON.stringify(value),
-                    valueInput: JSON.stringify(valueInput),
-                    choices: JSON.stringify(choice),
+                    id: catePart,
+                    valueRD: JSON.stringify(value),
+                    valueInputRD: JSON.stringify(valueInput),
+                    choicesRD: JSON.stringify(choice),
                 }),
             );
-        } else {
-            console.log(choice, 'choice', value, 'value', valueInput, 'valueInput');
-
-            if (JSON.stringify(valueRD) !== JSON.stringify(value)) {
-                let check = false;
-                const newD = JSON.parse(valueRD).map((v: any) => {
-                    if (v.id === catePart) {
-                        v.others = value;
-                    }
-                    return v;
-                });
-                // if (!check) dispatch(setValueRD({ value: JSON.stringify(JSON.parse(valueRD).push({id: catePart, others: })) }));
-                if (!check) dispatch(setValueRD({ value: JSON.stringify(newD) }));
-            }
-            if (JSON.stringify(valueInputRD) !== JSON.stringify(valueInput)) {
-                let check = false;
-                const newD = JSON.parse(valueInputRD).map((v: any) => {
-                    if (v.id === catePart) {
-                        v.others = valueInput;
-                    }
-                    return v;
-                });
-                dispatch(setValueInputRD({ valueInput: JSON.stringify(valueInput) }));
-            }
-            if (JSON.stringify(choicesRD) !== JSON.stringify(choice)) {
-                dispatch(setChoiceRD({ choices: JSON.stringify(choice) }));
-            }
         }
     }, [choice, value, valueInput]);
     const onChange = (e: RadioChangeEvent, id: string) => {
         console.log('radio checked', e.target.value);
-        let checkF = false;
-        const newValue = value.map((c) => {
-            if (c.id === id) {
-                c.value = e.target.value;
-                checkF = true;
+        if (startTime.some((s) => s.id === catePart && !s.finish)) {
+            let checkF = false;
+            const newValue = value.map((c) => {
+                if (c.id === id) {
+                    c.value = e.target.value;
+                    checkF = true;
+                }
+                return c;
+            });
+            if (!checkF) {
+                setValue([...value, { id, value: e.target.value, index: indexQ.index }]);
+            } else {
+                setValue(newValue);
             }
-            return c;
-        });
-        if (!checkF) {
-            setValue([...value, { id, value: e.target.value, index: indexQ.index }]);
-        } else {
-            setValue(newValue);
         }
     };
     const handleNext = (
@@ -174,21 +225,23 @@ const InCharger: React.FC<{
         }
     };
     const onChangeBox = (list: any, id: string, index: number) => {
-        let check = false;
-        const newChoice = choice.map((c) => {
-            if (c.id === id) {
-                c.value = list;
-                check = true;
+        if (startTime.some((s) => s.id === catePart && !s.finish)) {
+            let check = false;
+            const newChoice = choice.map((c) => {
+                if (c.id === id) {
+                    c.value = list;
+                    check = true;
+                }
+                return c;
+            });
+            console.log(list);
+            if (!check) {
+                setChoice([...choice, { value: list, id: id, index }]);
+            } else {
+                setChoice(newChoice);
             }
-            return c;
-        });
-        console.log(list);
-        if (!check) {
-            setChoice([...choice, { value: list, id: id, index }]);
-        } else {
-            setChoice(newChoice);
+            setCheckedList(list);
         }
-        setCheckedList(list);
     };
 
     return (
@@ -210,28 +263,52 @@ const InCharger: React.FC<{
                 `}
             >
                 <Swiper slidesPerView={3} spaceBetween={30} className="mySwiper">
-                    {roomData.Cates.$values.map((c) => {
+                    {roomData.Cates.$values.map((c, index) => {
                         return (
-                            <SwiperSlide
-                                key={c.Id}
-                                onClick={() => {
-                                    if (startTime.some((s) => s.id === c.Id && s.finish)) setCatePart(c.Id);
-                                }}
-                            >
+                            <SwiperSlide key={c.Id}>
                                 <Div
                                     css={`
                                         height: 100%;
                                         display: flex;
                                         align-items: center;
+                                        position: relative;
                                         width: 100%;
                                         justify-content: center;
                                         cursor: var(--pointer);
-                                        ${c.Id === catePart ? 'color: #68eee4;' : 'color: #919191; cursor: no-drop;'}
+                                        ${c.Id === catePart
+                                            ? "&:after {display: block; content: ''; width: 100%; height: 2px; background-color: #dedede; position: absolute; bottom: 0px;}"
+                                            : ''}
+                                        ${startTime.some((s) => s.id === catePart && c.Id === s.id && !s.finish)
+                                            ? 'color: #68eee4;'
+                                            : startTime.some((s) => s.id === c.Id && s.finish)
+                                            ? 'color: #a9a62d;'
+                                            : startTime.some((s) => s.id === c.Id)
+                                            ? 'color: #fff;'
+                                            : 'color: #858585;'}
                                     `}
+                                    onClick={() => {
+                                        if (startTime.some((s) => s.id === c.Id && catePart !== c.Id)) {
+                                            setCatePart(c.Id);
+                                            swiperRef.current.slideTo(0);
+                                            setIndex({ id: c.Questions.$values[0].Id, index: 0 });
+                                        }
+                                    }}
                                 >
                                     <H3 size="1.6rem">{c.Name}</H3>
                                     <Div width="auto" display="block" css="font-size: 1.4rem">
-                                        ( {c.TimeOut} <TimerI /> {c.TimeType ?? 'minutes'} )
+                                        ( {c.TimeOut}{' '}
+                                        {startTime.some((s) => s.id === c.Id) ? (
+                                            startTime.some((s) => s.id === c.Id && s.finish) ? (
+                                                <TimeOutI />
+                                            ) : (
+                                                <DivLoading>
+                                                    <DuraI />
+                                                </DivLoading>
+                                            )
+                                        ) : (
+                                            <TimerI />
+                                        )}
+                                        {c.TimeType ?? 'minutes'} )
                                     </Div>
                                 </Div>
                             </SwiperSlide>
@@ -241,34 +318,73 @@ const InCharger: React.FC<{
             </Div>
             <Div wrap="wrap" align="baseline" css="height: 94%; margin-top: 5px;  color: #fff; border-radius: 5px;">
                 <Div width="90%" css="height: 35px;">
-                    {roomData.Cates.$values.map((c) => {
+                    {roomData.Cates.$values.map((c, index) => {
                         if (c.Id === catePart) {
                             return (
                                 <Div
                                     key={c.Id}
                                     width="auto"
                                     css={`
-                                        border: 1px solid #39a7c6;
                                         margin-top: 9px;
                                         border-radius: 5px;
                                         margin-right: 10px;
                                         font-size: 1.4rem;
                                         cursor: var(--pointer);
                                         padding: 0 10px;
-                                        box-shadow: 0 0 7px #39a7c6;
                                         height: 35px;
-                                        &:hover {
-                                            background-color: #1d374d;
-                                        }
+                                        ${startTime.some((s) => s.id === catePart && !s.finish)
+                                            ? 'border: 1px solid #39a7c6;  box-shadow: 0 0 7px #39a7c6; &:hover {background-color: #1d374d;}'
+                                            : 'cursor: no-drop; color: #a5a5a5;'}
                                     `}
                                     onClick={() => {
-                                        const ok = window.confirm('You want to submit this part?');
-                                        if (ok) {
-                                            dispatch(setEnd({ id: catePart }));
+                                        if (startTime.some((s) => s.id === catePart && !s.finish)) {
+                                            const ok = window.confirm('You want to submit this part?');
+                                            if (ok) {
+                                                dispatch(setEnd({ id: catePart }));
+                                                if (roomData.Cates.$values[index + 1]) {
+                                                    const { Id, TimeOut, TimeType } = roomData.Cates.$values[index + 1];
+                                                    const startT = moment(
+                                                        moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
+                                                        'YYYY-MM-DD HH:mm:ss',
+                                                    );
+                                                    const type =
+                                                        TimeType === 'Hour'
+                                                            ? 'hours'
+                                                            : TimeType === 'Minute'
+                                                            ? 'minutes'
+                                                            : 'seconds';
+                                                    const newType =
+                                                        TimeOut < 2
+                                                            ? type === 'hours'
+                                                                ? 'hour'
+                                                                : type === 'minutes'
+                                                                ? 'minute'
+                                                                : 'second'
+                                                            : type;
+                                                    const end = startT.add(TimeOut, newType);
+                                                    dispatch(
+                                                        setStartRD({
+                                                            id_room: id_room,
+                                                            others: {
+                                                                id: Id,
+                                                                start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
+                                                                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                                                                finish: false,
+                                                            },
+                                                        }),
+                                                    );
+
+                                                    console.log(
+                                                        'finish',
+                                                        startTime.some((s) => s?.id === c.Id && s.finish),
+                                                    );
+                                                    setCatePart(roomData.Cates.$values[index + 1].Id);
+                                                }
+                                            }
                                         }
                                     }}
                                 >
-                                    Submit
+                                    Done
                                 </Div>
                             );
                         }
@@ -336,24 +452,18 @@ const InCharger: React.FC<{
                     </Div>
                     {roomData.Cates.$values.map((c) => {
                         if (c.Id === catePart) {
+                            console.log(startTime, 'startTime');
+
                             const { id, start, end } = startTime.filter((s) => s.id === catePart)[0];
                             return (
-                                <Div
+                                <Timer
                                     key={c.Id}
-                                    width="auto"
-                                    css={`
-                                        border: 1px solid #39a7c6;
-                                        margin-top: 9px;
-                                        border-radius: 5px;
-                                        margin-left: 10px;
-                                        padding: 0 10px;
-                                        box-shadow: 0 0 7px #39a7c6;
-                                        height: 35px;
-                                    `}
-                                >
-                                    <Timer start={start} end={end} />
-                                    <TimerI />
-                                </Div>
+                                    start={start}
+                                    end={end}
+                                    setCatePart={setCatePart}
+                                    roomData={roomData}
+                                    catePart={catePart}
+                                />
                             );
                         }
                     })}
@@ -368,21 +478,18 @@ const InCharger: React.FC<{
                         onSwiper={(swiper: any) => (swiperRef.current = swiper)}
                         className="mySwiper"
                         onSlideChange={(e: any) => {
-                            console.log('zooo');
+                            console.log('zooo', process);
 
                             let pr = process;
                             console.log(e.slides[e.activeIndex].getAttribute('id'), 'active');
                             if (value.length) {
-                                console.log(indexQ, 'value');
+                                let i = indexQ.index;
+                                console.log(indexQ, 'value', value);
                                 value.forEach((v) => {
-                                    if (
-                                        (process.some((p) => p.id === v.id) || indexQ.id === v.id) &&
-                                        e.activeIndex > v.index &&
-                                        !v.value.length
-                                    ) {
-                                        if (!pr.some((p) => p.id === v.id))
-                                            pr = [...pr, { id: v.id, index: indexQ.index }];
+                                    if (e.activeIndex > v.index && !v.value.length) {
+                                        if (!pr.some((p) => p.id === v.id)) pr = [...pr, { id: v.id, index: i }];
                                         console.log('value xoo');
+                                        if (i < e.activeIndex) i++;
                                     } else {
                                         const newPr = pr.filter((p) => p.id !== v.id);
                                         console.log('value noo', newPr);
@@ -411,22 +518,19 @@ const InCharger: React.FC<{
                             }
                             if (valueInput.length) {
                                 console.log(valueInput, 'valueInput');
-
-                                valueInput.forEach((v) => {
-                                    if (
-                                        (process.some((p) => p.id === v.id) || indexQ.id === v.id) &&
-                                        e.activeIndex > v.index &&
-                                        !v.value
-                                    ) {
+                                let i = indexQ.index;
+                                valueInput.forEach((v, index) => {
+                                    if (e.activeIndex > v.index && !v.value) {
                                         console.log('valueInput zoo');
-                                        if (!pr.some((p) => p.id === v.id))
-                                            pr = [...pr, { id: v.id, index: indexQ.index }];
+                                        if (!pr.some((p) => p.id === v.id)) pr = [...pr, { id: v.id, index: i }];
+                                        if (i < e.activeIndex) i++;
                                     } else {
                                         const newPr = pr.filter((p) => p.id !== v.id);
                                         console.log('valueInput noo', newPr);
                                         pr = newPr;
                                     }
                                 });
+                                console.log(pr, 'process');
                             } else {
                                 if (!choice.some((p) => p.id === indexQ.id) && !value.some((p) => p.id === indexQ.id))
                                     if (indexQ.index < e.activeIndex) {
@@ -440,15 +544,12 @@ const InCharger: React.FC<{
                                     }
                             }
                             if (choice.length) {
+                                let i = indexQ.index;
                                 console.log(indexQ, 'choice');
                                 choice.forEach((v) => {
-                                    if (
-                                        (process.some((p) => p.id === v.id) || indexQ.id === v.id) &&
-                                        e.activeIndex > v.index &&
-                                        !v.value.length
-                                    ) {
-                                        if (!pr.some((p) => p.id === v.id))
-                                            pr = [...pr, { id: v.id, index: indexQ.index }];
+                                    if (e.activeIndex > v.index && !v.value.length) {
+                                        if (!pr.some((p) => p.id === v.id)) pr = [...pr, { id: v.id, index: i }];
+                                        if (i < e.activeIndex) i++;
                                         console.log('choice xoo');
                                     } else {
                                         const newPr = pr.filter((p) => p.id !== v.id);
@@ -565,7 +666,7 @@ const InCharger: React.FC<{
                                                         JSON.parse(q.Answer)?.length > 1 ? (
                                                             <Checkbox.Group
                                                                 options={JSON.parse(q.AnswerArray)}
-                                                                value={checkedList}
+                                                                value={choice.filter((c) => c.id === q.Id)[0]?.value}
                                                                 onChange={(e) => onChangeBox(e, q.Id, index)}
                                                                 className="aaaa"
                                                             />
@@ -594,25 +695,31 @@ const InCharger: React.FC<{
                                                                     valueInput.filter((v) => v.id === q.Id)[0]?.value
                                                                 }
                                                                 onChange={(e) => {
-                                                                    let check = false;
-                                                                    const newIn = valueInput.map((i) => {
-                                                                        if (i.id === q.Id) {
-                                                                            i.value = e.target.value;
-                                                                            check = true;
+                                                                    if (
+                                                                        startTime.some(
+                                                                            (s) => s.id === catePart && !s.finish,
+                                                                        )
+                                                                    ) {
+                                                                        let check = false;
+                                                                        const newIn = valueInput.map((i) => {
+                                                                            if (i.id === q.Id) {
+                                                                                i.value = e.target.value;
+                                                                                check = true;
+                                                                            }
+                                                                            return i;
+                                                                        });
+                                                                        if (!check) {
+                                                                            setValueInput([
+                                                                                ...valueInput,
+                                                                                {
+                                                                                    id: q.Id,
+                                                                                    value: e.target.value,
+                                                                                    index: indexQ.index,
+                                                                                },
+                                                                            ]);
+                                                                        } else {
+                                                                            setValueInput(newIn);
                                                                         }
-                                                                        return i;
-                                                                    });
-                                                                    if (!check) {
-                                                                        setValueInput([
-                                                                            ...valueInput,
-                                                                            {
-                                                                                id: q.Id,
-                                                                                value: e.target.value,
-                                                                                index: indexQ.index,
-                                                                            },
-                                                                        ]);
-                                                                    } else {
-                                                                        setValueInput(newIn);
                                                                     }
                                                                 }}
                                                             />
