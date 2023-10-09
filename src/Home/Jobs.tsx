@@ -53,6 +53,8 @@ const Jobs = () => {
                 user: { id: string; gender: boolean; name: string };
                 userId: string;
             }[] = await occupationAPI.getInfoListing();
+            console.log(result, 'result');
+
             return result;
         },
     });
@@ -94,7 +96,17 @@ const Jobs = () => {
     };
     return (
         <Div wrap="wrap" css="padding-left: 7px; height: 100%; color: #313131;">
-            <H3>Jobs</H3>
+            <H3
+                css={`
+                    color: #fff;
+                    width: 100%;
+                    border: 1px solid #57d9e796;
+                    border-radius: 5px;
+                    box-shadow: 0 0 3px #57d9e7ba;
+                `}
+            >
+                Jobs
+            </H3>
             {apply && (
                 <Div
                     css={`
@@ -157,7 +169,7 @@ const Jobs = () => {
                         onClick={() => setObjectFit('')}
                     ></Div>
                 )}
-                {data?.map((o) => (
+                {data?.map((o, index) => (
                     <Div
                         key={o.id}
                         css={`
@@ -166,11 +178,8 @@ const Jobs = () => {
                             background-color: #ffff;
                             border-radius: 5px;
                             cursor: var(--pointer);
-                            &:hover {
-                                background-color: #dee1e6;
-                            }
                             ${objectFit === o.id
-                                ? 'z-index: 1; position: absolute; top: 50%; left: 50%; right: 50%; translate: -50% -50%; width: 50%; }'
+                                ? 'z-index: 1; position: absolute; overflow: overlay; height: 88%; top: 50%; left: 50%; right: 50%; translate: -50% -50%; width: 50%; }'
                                 : ''}
                         `}
                         wrap="wrap"
@@ -219,7 +228,21 @@ const Jobs = () => {
                             </Div>{' '}
                             {o.info &&
                                 JSON.parse(o.info).map((fo: any, index: number) => (
-                                    <Div key={index} wrap="wrap">
+                                    <Div
+                                        key={index}
+                                        wrap="wrap"
+                                        css={`
+                                            margin: 5px 0;
+                                            background-color: #4d4d4d;
+                                            color: #eee;
+                                            position: relative;
+                                            padding: 8px;
+                                            border-radius: 5px;
+                                        `}
+                                    >
+                                        <Div width="auto" css="position: absolute; top: 5px; right: 8px">
+                                            {index + 1}
+                                        </Div>
                                         <Div justify="left">
                                             <H3
                                                 size="1.4rem"
@@ -262,19 +285,19 @@ const Jobs = () => {
                                                 {fo.contact}
                                             </H3>
                                         </Div>
-                                        {fo.information && (
+                                        {fo.introduction && (
                                             <P
                                                 size="1.3rem"
                                                 css={`
                                                     width: 100%;
                                                     margin-top: 5px;
                                                     text-align: start;
-                                                    ${objectFit !== 'one'
-                                                        ? ' overflow: hidden; height: 43px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
+                                                    ${objectFit !== o.id
+                                                        ? ' overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
                                                         : ''}
                                                 `}
                                             >
-                                                <strong>Information:</strong> {fo.information}
+                                                <strong>Introduction:</strong> {fo.introduction}
                                             </P>
                                         )}
                                         {fo.requirement && (
@@ -284,8 +307,8 @@ const Jobs = () => {
                                                     width: 100%;
                                                     margin-top: 5px;
                                                     text-align: start;
-                                                    ${objectFit !== 'one'
-                                                        ? ' overflow: hidden; height: 43px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
+                                                    ${objectFit !== o.id
+                                                        ? ' overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;'
                                                         : ''}
                                                 `}
                                             >

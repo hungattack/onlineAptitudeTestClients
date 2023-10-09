@@ -26,37 +26,37 @@ function MyTimer({
     const { status, startTime, canProcess, id_room } = useSelector(
         (state: { persistedReducer: { testingData: PropsTestingDataRD } }) => state.persistedReducer.testingData,
     );
+
     const { totalSeconds, seconds, minutes, hours, days, isRunning, start, pause, resume, restart } = useTimer({
         expiryTimestamp,
-
         onExpire: () => {
             toast('Expire!');
-            dispatch(setEnd({ id: catePart }));
-            roomData.Cates.$values.map((c, index) => {
-                if (c.Id === catePart) {
-                    if (roomData.Cates.$values[index + 1]) {
-                        const { Id, TimeOut, TimeType } = roomData.Cates.$values[index + 1];
-                        const startT = moment(moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'), 'YYYY-MM-DD HH:mm:ss');
-                        const type = TimeType === 'Hour' ? 'hours' : TimeType === 'Minute' ? 'minutes' : 'seconds';
-                        const newType =
-                            TimeOut < 2 ? (type === 'hours' ? 'hour' : type === 'minutes' ? 'minute' : 'second') : type;
-                        const end = startT.add(TimeOut, newType);
-                        dispatch(
-                            setStartRD({
-                                id_room: id_room,
-                                others: {
-                                    id: Id,
-                                    start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
-                                    end: end.format('YYYY-MM-DD HH:mm:ss'),
-                                    finish: false,
-                                },
-                            }),
-                        );
+            // dispatch(setEnd({ id: catePart }));
+            // roomData.Cates.$values.map((c, index) => {
+            //     if (c.Id === catePart) {
+            //         if (roomData.Cates.$values[index + 1]) {
+            //             const { Id, TimeOut, TimeType } = roomData.Cates.$values[index + 1];
+            //             const startT = moment(moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'), 'YYYY-MM-DD HH:mm:ss');
+            //             const type = TimeType === 'Hour' ? 'hours' : TimeType === 'Minute' ? 'minutes' : 'seconds';
+            //             const newType =
+            //                 TimeOut < 2 ? (type === 'hours' ? 'hour' : type === 'minutes' ? 'minute' : 'second') : type;
+            //             const end = startT.add(TimeOut, newType);
+            //             dispatch(
+            //                 setStartRD({
+            //                     id_room: id_room,
+            //                     others: {
+            //                         id: Id,
+            //                         start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
+            //                         end: end.format('YYYY-MM-DD HH:mm:ss'),
+            //                         finish: false,
+            //                     },
+            //                 }),
+            //             );
 
-                        setCatePart(roomData.Cates.$values[index + 1].Id);
-                    }
-                }
-            });
+            //             setCatePart(roomData.Cates.$values[index + 1].Id);
+            //         }
+            //     }
+            // });
         },
     });
     console.log(isRunning, 'isRunning', minutes, expiryTimestamp);
@@ -69,14 +69,10 @@ function MyTimer({
 }
 
 export default function Timer({
-    start,
-    end,
     setCatePart,
     roomData,
     catePart,
 }: {
-    start: string;
-    end: string;
     setCatePart: React.Dispatch<React.SetStateAction<string>>;
     roomData: PropsRoomData;
     catePart: string;
@@ -85,38 +81,14 @@ export default function Timer({
     const { status, startTime, canProcess, id_room } = useSelector(
         (state: { persistedReducer: { testingData: PropsTestingDataRD } }) => state.persistedReducer.testingData,
     );
+    console.log(startTime, 'startTime');
+
+    const { id, start, end } = startTime.filter((s) => s.id === catePart)[0];
     const [warning, setWarning] = useState<boolean>(false);
     const time = moment(start);
     const dura = moment(end).diff(moment(Date.now()), 'seconds');
-    console.log(dura, 'dora');
-    if (!dura && startTime.some((s) => s.id === catePart && !s.finish)) {
-        dispatch(setEnd({ id: catePart }));
-        roomData.Cates.$values.map((c, index) => {
-            if (c.Id === catePart) {
-                if (roomData.Cates.$values[index + 1]) {
-                    const { Id, TimeOut, TimeType } = roomData.Cates.$values[index + 1];
-                    const startT = moment(moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'), 'YYYY-MM-DD HH:mm:ss');
-                    const type = TimeType === 'Hour' ? 'hours' : TimeType === 'Minute' ? 'minutes' : 'seconds';
-                    const newType =
-                        TimeOut < 2 ? (type === 'hours' ? 'hour' : type === 'minutes' ? 'minute' : 'second') : type;
-                    const end = startT.add(TimeOut, newType);
-                    dispatch(
-                        setStartRD({
-                            id_room: id_room,
-                            others: {
-                                id: Id,
-                                start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
-                                end: end.format('YYYY-MM-DD HH:mm:ss'),
-                                finish: false,
-                            },
-                        }),
-                    );
+    console.log(dura, 'dora', time);
 
-                    setCatePart(roomData.Cates.$values[index + 1].Id);
-                }
-            }
-        });
-    }
     time.add(dura, 'seconds'); // 10 minutes timer
 
     return (

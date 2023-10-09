@@ -41,11 +41,12 @@ const Result: React.FC<{
     const [addData, setAddData] = useState<boolean>(false);
     const [type, setType] = useState<string>('string'); // string or array
     const [showTimerType, setShowTimerType] = useState<boolean>(false);
-    const [timer, setTimer] = useState<string>(result.TimeType ?? 'Minute');
+    const [timer, setTimer] = useState<string>(result.TimeType);
     const [valTimer, setValTimer] = useState<number>(result.TimeOut ?? 0);
     const [catePart, setCatePart] = useState<string>(result.Name);
     const [edit, setEdit] = useState<boolean>(false);
     const [reload, setReload] = useState<string>('ok');
+    console.log(timer, 'timer, setTimer] ', result);
 
     const [updateF, setUpdateF] = useState<string>(''); //for question
     const [dataDelete, setDataDelete] = useState<string>('');
@@ -100,6 +101,9 @@ const Result: React.FC<{
     useEffect(() => {
         if (result.TimeOut && result.TimeOut !== valTimer) {
             setValTimer(result.TimeOut);
+        }
+        if (result.TimeType && result.TimeType !== timer) {
+            setTimer(result.TimeType);
         }
         if (result.Name !== catePart) {
             setCatePart(result.Name);
@@ -1178,6 +1182,8 @@ const Result: React.FC<{
 
             ok = true;
         }
+        console.log(result.TimeType, 'result.TimeType', timer);
+
         if ((result.TimeType ?? 'Minute') !== timer) {
             mockData.TimeType = timer;
             console.log('timer', timer);

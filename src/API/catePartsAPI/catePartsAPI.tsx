@@ -34,7 +34,13 @@ class CateParts {
             return errorHandling(err);
         }
     };
-    update = async (params: { Id: string; Name?: string; TimeOut?: number; OccupationId: string }) => {
+    update = async (params: {
+        Id: string;
+        Name?: string;
+        TimeOut?: number;
+        TimeType?: string;
+        OccupationId: string;
+    }) => {
         try {
             const response = await http.put('/CateParts/Update/', { ...params });
             return response.data;

@@ -3,7 +3,7 @@ import Jobs from './Jobs';
 export default function Home() {
     return (
         <Div css="height: 92%">
-            <Div width="50%" css="background-color: antiquewhite; height: 100%; padding: 10px 20px">
+            <Div width="50%" css="background-color: #323232; height: 100%; padding: 10px 20px">
                 <Jobs />
             </Div>
             {/* <div className={styles.box}>success Job seeker</div>

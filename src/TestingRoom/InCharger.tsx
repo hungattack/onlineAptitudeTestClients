@@ -52,8 +52,8 @@ const InCharger: React.FC<{
         }
         return data;
     }); // for text
-    const [value, setValue] = useState<{ id: string; value: string[]; index: number }[]>(() => {
-        let data: { id: string; value: string[]; index: number }[] = [];
+    const [value, setValue] = useState<{ id: string; value: string; index: number }[]>(() => {
+        let data: { id: string; value: string; index: number }[] = [];
         if (canProcess.length && canProcess.some((c) => c.id === catePart)) {
             data = JSON.parse(canProcess.filter((c) => c.id === catePart)[0].valueRD);
         } else {
@@ -61,7 +61,7 @@ const InCharger: React.FC<{
                 if (c.Id === catePart)
                     c.Questions.$values.map((q, index) => {
                         if (JSON.parse(q.Answer)?.length === 1 && q.AnswerType !== 'string') {
-                            data.push({ id: q.Id, value: [], index });
+                            data.push({ id: q.Id, value: '', index });
                         }
                     });
             });
@@ -94,7 +94,7 @@ const InCharger: React.FC<{
         dispatch(setCateP(catePart));
         if (startTime.length > 1 && startTime.some((s) => s.id === catePart)) {
             setValue(() => {
-                let data: { id: string; value: string[]; index: number }[] = [];
+                let data: { id: string; value: string; index: number }[] = [];
                 roomData.Cates.$values.map((c) => {
                     if (c.Id === catePart || startTime.some((s) => s.id === c.Id)) {
                         if (canProcess.length && canProcess.some((cs) => cs.id === c.Id && cs?.valueRD)) {
@@ -102,7 +102,7 @@ const InCharger: React.FC<{
                         } else {
                             c.Questions.$values.map((q, index) => {
                                 if (JSON.parse(q.Answer)?.length === 1 && q.AnswerType !== 'string') {
-                                    data.push({ id: q.Id, value: [], index });
+                                    data.push({ id: q.Id, value: '', index });
                                 }
                             });
                         }
@@ -147,7 +147,7 @@ const InCharger: React.FC<{
         }
     }, [catePart]);
     useEffect(() => {
-        let check = false;
+        let check = false; // check user's process
         canProcess.map((c) => {
             if (c.id === catePart) {
                 if (c.valueRD && c.valueRD !== JSON.stringify(value)) {
@@ -243,7 +243,107 @@ const InCharger: React.FC<{
             setCheckedList(list);
         }
     };
+    const handleDone = (index: number, id: string) => {
+        if (startTime.some((s) => s.id === catePart && !s.finish)) {
+            const ok = window.confirm('You want to submit this part?');
+            if (ok) {
+                // dispatch(setEnd({ id: catePart }));
+                // if (roomData.Cates.$values[index + 1]) {
+                //     const { Id, TimeOut, TimeType } = roomData.Cates.$values[index + 1];
+                //     const startT = moment(moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'), 'YYYY-MM-DD HH:mm:ss');
+                //     const type = TimeType === 'Hour' ? 'hours' : TimeType === 'Minute' ? 'minutes' : 'seconds';
+                //     const newType =
+                //         TimeOut < 2 ? (type === 'hours' ? 'hour' : type === 'minutes' ? 'minute' : 'second') : type;
+                //     const end = startT.add(TimeOut, newType);
+                //     dispatch(
+                //         setStartRD({
+                //             id_room: id_room,
+                //             others: {
+                //                 id: Id,
+                //                 start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
+                //                 end: end.format('YYYY-MM-DD HH:mm:ss'),
+                //                 finish: false,
+                //             },
+                //         }),
+                //     );
 
+                //     console.log(
+                //         'finish',
+                //         startTime.some((s) => s?.id === id && s.finish),
+                //     );
+                //     setCatePart(roomData.Cates.$values[index + 1].Id);
+                // }
+                let result: {
+                    catePartId: string;
+                    question: {
+                        correct: { id: string; name: string; answer: string; point: number; user: string }[];
+                        inCorrect: { id: string; name: string; answer: string; point: number; user: string }[];
+                    };
+                }[] = [];
+
+                let vl: {
+                    catePartId: string;
+                    question: {
+                        correct: { id: string; name: string; answer: string; point: number; user: string }[];
+                        inCorrect: { id: string; name: string; answer: string; point: number; user: string }[];
+                    };
+                } = { catePartId: '', question: { correct: [], inCorrect: [] } };
+                roomData.Cates.$values.map((c) => {
+                    if (c.Id === catePart) {
+                        console.log(c, 'val c');
+
+                        c.Questions.$values.map((q) => {
+                            console.log(q, 'val q', value);
+                            let check = false;
+                            value.map((v) => {
+                                if (v.id === q.Id && q.AnswerType === 'array' && JSON.parse(q.Answer).length === 1) {
+                                    check = true;
+                                    console.log(v, 'val v');
+                                    vl.catePartId = catePart;
+                                    if (JSON.parse(q.Answer).some((an: string) => an === v.value && v.value)) {
+                                        if (!vl.question.correct.some((vll) => vll.id === v.id)) {
+                                            vl.question.correct.push({
+                                                id: q.Id,
+                                                name: q.QuestionName,
+                                                answer: q.Answer,
+                                                user: v.value,
+                                                point: q.Point,
+                                            });
+                                        }
+                                    } else {
+                                        if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
+                                            vl.question.inCorrect.push({
+                                                id: q.Id,
+                                                name: q.QuestionName,
+                                                answer: q.Answer,
+                                                user: v.value,
+                                                point: q.Point,
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                            if (!check) {
+                                if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
+                                    vl.question.inCorrect.push({
+                                        id: q.Id,
+                                        name: q.QuestionName,
+                                        answer: q.Answer,
+                                        user: '',
+                                        point: q.Point,
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    if (!result.length || (!result.some((va) => va.catePartId === vl?.catePartId) && vl?.catePartId)) {
+                        result.push(vl);
+                    }
+                });
+                console.log(result, 'val');
+            }
+        }
+    };
     return (
         <Div display="block" css="height: 100%; color: #fff">
             <Div
@@ -336,53 +436,7 @@ const InCharger: React.FC<{
                                             ? 'border: 1px solid #39a7c6;  box-shadow: 0 0 7px #39a7c6; &:hover {background-color: #1d374d;}'
                                             : 'cursor: no-drop; color: #a5a5a5;'}
                                     `}
-                                    onClick={() => {
-                                        if (startTime.some((s) => s.id === catePart && !s.finish)) {
-                                            const ok = window.confirm('You want to submit this part?');
-                                            if (ok) {
-                                                dispatch(setEnd({ id: catePart }));
-                                                if (roomData.Cates.$values[index + 1]) {
-                                                    const { Id, TimeOut, TimeType } = roomData.Cates.$values[index + 1];
-                                                    const startT = moment(
-                                                        moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
-                                                        'YYYY-MM-DD HH:mm:ss',
-                                                    );
-                                                    const type =
-                                                        TimeType === 'Hour'
-                                                            ? 'hours'
-                                                            : TimeType === 'Minute'
-                                                            ? 'minutes'
-                                                            : 'seconds';
-                                                    const newType =
-                                                        TimeOut < 2
-                                                            ? type === 'hours'
-                                                                ? 'hour'
-                                                                : type === 'minutes'
-                                                                ? 'minute'
-                                                                : 'second'
-                                                            : type;
-                                                    const end = startT.add(TimeOut, newType);
-                                                    dispatch(
-                                                        setStartRD({
-                                                            id_room: id_room,
-                                                            others: {
-                                                                id: Id,
-                                                                start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
-                                                                end: end.format('YYYY-MM-DD HH:mm:ss'),
-                                                                finish: false,
-                                                            },
-                                                        }),
-                                                    );
-
-                                                    console.log(
-                                                        'finish',
-                                                        startTime.some((s) => s?.id === c.Id && s.finish),
-                                                    );
-                                                    setCatePart(roomData.Cates.$values[index + 1].Id);
-                                                }
-                                            }
-                                        }
-                                    }}
+                                    onClick={() => handleDone(index, c.Id)}
                                 >
                                     Done
                                 </Div>
@@ -454,16 +508,8 @@ const InCharger: React.FC<{
                         if (c.Id === catePart) {
                             console.log(startTime, 'startTime');
 
-                            const { id, start, end } = startTime.filter((s) => s.id === catePart)[0];
                             return (
-                                <Timer
-                                    key={c.Id}
-                                    start={start}
-                                    end={end}
-                                    setCatePart={setCatePart}
-                                    roomData={roomData}
-                                    catePart={catePart}
-                                />
+                                <Timer key={c.Id} setCatePart={setCatePart} roomData={roomData} catePart={catePart} />
                             );
                         }
                     })}
