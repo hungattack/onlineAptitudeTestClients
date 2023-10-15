@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Buttons, Div, H3, P } from '../styleComponent/styleComponent';
+import { Buttons, Div, DivLoading, H3, P } from '../styleComponent/styleComponent';
 import { Image } from 'antd';
 import Images from '../assets/images';
 import { Form, Input, Button } from 'antd';
@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useQuery } from '@tanstack/react-query';
 import occupationAPI from '../API/occupationAPI/occupationAPI';
+import { LoadingI } from '../assets/Icons/Icons';
 const Jobs = () => {
     const user = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
         return state.persistedReducer.userData.user;
@@ -41,13 +42,22 @@ const Jobs = () => {
         return <Form.Item name={concatName} {...props} />;
     };
 
-    const { data } = useQuery({
+    const { data, isLoading } = useQuery({
         queryKey: ['JobApplying', 1],
         queryFn: async () => {
             const result: {
                 createdAt: string;
                 id: string;
-                info: string;
+                infos: {
+                    id: number;
+                    introduction: string;
+                    position: string;
+                    address: string;
+                    company: string;
+                    contact: string;
+                    name: string;
+                    requirement: string;
+                }[];
                 name: string;
                 updatedAt: string;
                 user: { id: string; gender: boolean; name: string };
@@ -169,65 +179,69 @@ const Jobs = () => {
                         onClick={() => setObjectFit('')}
                     ></Div>
                 )}
-                {data?.map((o, index) => (
-                    <Div
-                        key={o.id}
-                        css={`
-                            margin-top: 20px;
-                            padding: 5px;
-                            background-color: #ffff;
-                            border-radius: 5px;
-                            cursor: var(--pointer);
-                            ${objectFit === o.id
-                                ? 'z-index: 1; position: absolute; overflow: overlay; height: 88%; top: 50%; left: 50%; right: 50%; translate: -50% -50%; width: 50%; }'
-                                : ''}
-                        `}
-                        wrap="wrap"
-                        onClick={() => setObjectFit(o.id)}
-                    >
-                        <Div css="position: relative;justify-content: left;">
-                            <Div
-                                css={`
-                                    width: 40px;
-                                    height: 40px;
-                                    margin-right: 5px;
-                                    img {
-                                        object-fit: cover;
-                                        height: 100% !important;
-                                        border-radius: 50%;
-                                    }
-                                    div {
-                                        width: 100%;
-                                        height: 100%;
-                                    }
-                                `}
-                            >
-                                <Image src={Images.male} />
+                {isLoading ? (
+                    <DivLoading>
+                        <LoadingI />
+                    </DivLoading>
+                ) : (
+                    data?.map((o, index) => (
+                        <Div
+                            key={o.id}
+                            css={`
+                                margin-top: 20px;
+                                padding: 5px;
+                                background-color: #ffff;
+                                border-radius: 5px;
+                                cursor: var(--pointer);
+                                ${objectFit === o.id
+                                    ? 'z-index: 1; position: absolute; overflow: overlay; height: 88%; top: 50%; left: 50%; right: 50%; translate: -50% -50%; width: 50%; }'
+                                    : ''}
+                            `}
+                            wrap="wrap"
+                            onClick={() => setObjectFit(o.id)}
+                        >
+                            <Div css="position: relative;justify-content: left;">
+                                <Div
+                                    css={`
+                                        width: 40px;
+                                        height: 40px;
+                                        margin-right: 5px;
+                                        img {
+                                            object-fit: cover;
+                                            height: 100% !important;
+                                            border-radius: 50%;
+                                        }
+                                        div {
+                                            width: 100%;
+                                            height: 100%;
+                                        }
+                                    `}
+                                >
+                                    <Image src={Images.male} />
+                                </Div>
+                                <P size="1.4rem">{o.user.name}</P>
+                                <Buttons
+                                    type="primary"
+                                    css="width: auto; position: absolute; top: 5px; right: 10px;  &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px; "
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setObjectFit('');
+                                        setApply('28644857-9bd2-4acc-9033-e27510d0e429');
+                                    }}
+                                >
+                                    Apply
+                                </Buttons>
                             </Div>
-                            <P size="1.4rem">{o.user.name}</P>
-                            <Buttons
-                                type="primary"
-                                css="width: auto; position: absolute; top: 5px; right: 10px;  &:hover{background-color: #6bdfe4} font-size: 1.3rem; border-radius: 5px; padding: 4px 8px; "
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setObjectFit('');
-                                    setApply('28644857-9bd2-4acc-9033-e27510d0e429');
-                                }}
-                            >
-                                Apply
-                            </Buttons>
-                        </Div>
-                        <Div wrap="wrap">
-                            <Div justify="left">
-                                <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
-                                    Position:
-                                </H3>
-                                <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
-                                    {o.name}
-                                </H3>
-                            </Div>{' '}
-                            {o.info &&
-                                JSON.parse(o.info).map((fo: any, index: number) => (
+                            <Div wrap="wrap">
+                                <Div justify="left">
+                                    <H3 size="1.4rem" css="width: fit-content; position: relative; text-align: start;">
+                                        Position:
+                                    </H3>
+                                    <H3 size="1.3rem" css="width: 100%; text-align: left; padding-left: 7px">
+                                        {o.name}
+                                    </H3>
+                                </Div>{' '}
+                                {o.infos?.map((fo: any, index: number) => (
                                     <Div
                                         key={index}
                                         wrap="wrap"
@@ -317,9 +331,10 @@ const Jobs = () => {
                                         )}
                                     </Div>
                                 ))}
+                            </Div>
                         </Div>
-                    </Div>
-                ))}
+                    ))
+                )}
             </Div>
         </Div>
     );

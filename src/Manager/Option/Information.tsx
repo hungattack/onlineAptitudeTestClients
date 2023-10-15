@@ -38,6 +38,7 @@ const Information: React.FC<{
         queryKey: ['GetInfor', 1],
         queryFn: async () => {
             const d: {
+                id: number;
                 introduction: string;
                 position: string;
                 address: string;
@@ -65,7 +66,8 @@ const Information: React.FC<{
     }) => {
         setLoading(true);
         user.occupationId = cate.id;
-        const res = await occupationAPI.addInfo(cate.id, JSON.stringify([...(data ?? []), { ...user }]));
+
+        const res = await occupationAPI.addInfo(user);
         if (res === 'ok') {
             toast('Add Information successful');
             refetch();
@@ -77,8 +79,7 @@ const Information: React.FC<{
         setLoading(true);
         const del = window.confirm('Do you want to delete this item');
         if (del && data) {
-            const newD = data.filter((fo, index) => index + 1 !== id);
-            const res = await occupationAPI.addInfo(cate.id, JSON.stringify(newD));
+            const res = await occupationAPI.deleteInfo(id, cate.id);
             if (res === 'ok') {
                 toast('Add Infomation successful');
                 refetch();
@@ -117,7 +118,7 @@ const Information: React.FC<{
             >
                 {data?.map((fo, index: number) => (
                     <Div
-                        key={index}
+                        key={fo.id}
                         wrap="wrap"
                         width="80%"
                         css={`
@@ -134,7 +135,7 @@ const Information: React.FC<{
                         <Div
                             width="auto"
                             css="position: absolute; top: 2px; right: 10px; font-size: 20px; cursor: var(--pointer)"
-                            onClick={() => handleDelete(index + 1)}
+                            onClick={() => handleDelete(fo.id)}
                         >
                             <MinusI />
                         </Div>
@@ -233,27 +234,27 @@ const Information: React.FC<{
                             }}
                         >
                             <Form.Item name={['user', 'position']} label="Position" required>
-                                <Input type="text" placeholder="Position" required />
+                                <Input type="text" placeholder="Position" required maxLength={50} />
                             </Form.Item>
                             <Form.Item name={['user', 'address']} label="Address" required>
-                                <Input type="text" placeholder="Address" required />
+                                <Input type="text" placeholder="Address" required maxLength={50} />
                             </Form.Item>
                             <Form.Item name={['user', 'company']} label="Company" required>
-                                <Input type="text" placeholder="Company" required />
+                                <Input type="text" placeholder="Company" required maxLength={50} />
                             </Form.Item>{' '}
                             <Form.Item name={['user', 'contact']} label="Contact" required>
                                 <Form.Item name={['user', 'name']} label="Name" required>
-                                    <Input type="text" placeholder="Name" required />
+                                    <Input type="text" placeholder="Name" required maxLength={50} />
                                 </Form.Item>
                                 <Form.Item name={['user', 'contact']} label="Contact" required>
-                                    <Input type="text" placeholder="Contact" required />
+                                    <Input type="text" placeholder="Contact" required maxLength={50} />
                                 </Form.Item>
                             </Form.Item>
                             <Form.Item name={['user', 'introduction']} label="Introduction" required>
-                                <Input.TextArea placeholder="Introduction" required />
+                                <Input.TextArea placeholder="Introduction" required maxLength={500} />
                             </Form.Item>
                             <Form.Item name={['user', 'requirement']} label="Requirement" required>
-                                <Input.TextArea placeholder="Requirement" required />
+                                <Input.TextArea placeholder="Requirement" required maxLength={500} />
                             </Form.Item>
                             <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 2 }}>
                                 <Button type="primary" htmlType="submit" loading={loading}>

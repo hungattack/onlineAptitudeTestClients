@@ -4,10 +4,15 @@ import http from '../../utils/http';
 import { PropsOccupationData } from '../../Manager/Option/Option';
 
 class Candidate {
-    get = async (id?: string) => {
+    get = async (type: string, id?: string) => {
         try {
-            const response = await http.get(`/Candidate/Listing/${id}`);
-            return response.data;
+            if (type === 'register') {
+                const response = await http.get(`/Candidate/ListingRegisters/${id}`);
+                return response.data;
+            } else if (type === 'duration') {
+                const response = await http.get(`/Candidate/ListingDuration/${id}`);
+                return response.data;
+            }
         } catch (error) {
             const err: any = error as AxiosError;
             return errorHandling(err);

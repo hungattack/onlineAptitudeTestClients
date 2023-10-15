@@ -11,7 +11,9 @@ import { Toast } from 'react-toastify/dist/components';
 import { useSelector } from 'react-redux';
 import { PropsUserDataRD } from '../../redux/userData';
 import catePartsAPI from '../../API/catePartsAPI/catePartsAPI';
+import { v4 as uuidv4 } from 'uuid';
 
+// ⇨ '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'
 const Result: React.FC<{
     result: {
         $id?: string;
@@ -60,9 +62,9 @@ const Result: React.FC<{
     interface DataType {
         index: number | ReactElement;
         key: string;
+        pointAr: string | ReactElement;
         questionName: string | ReactElement;
         answer?: string | ReactElement;
-        point: number | ReactElement;
         answerArray?: string[] | ReactElement;
         createdAt?: string;
         answerType?: string;
@@ -77,7 +79,7 @@ const Result: React.FC<{
                 createdAt: string;
                 id: string;
                 partId: string;
-                point: number;
+                pointAr: string;
                 answerArray: string;
                 answerType: string;
                 questionName: string;
@@ -87,14 +89,31 @@ const Result: React.FC<{
         },
         staleTime: 60 * 1000,
     });
+    const [pointArr, setPointArr] = useState<{ id: string; point: string }[]>([]);
+
     const [point, setPoint] = useState<string>(() => {
-        const po = data?.reduce((sum, d) => (sum += d.point), 0);
+        //total
+        const po = data?.reduce((sum, d) => {
+            JSON.parse(d.pointAr)?.map((p: { id: number; point: number }) => (sum += Number(p.point)));
+
+            return sum;
+        }, 0);
+        console.log(po, 'poo');
+
         return po ? String(po) : '0';
     });
     useEffect(() => {
         if (data)
             setPoint(() => {
-                const po = data?.reduce((sum, d) => (sum += d.point), 0);
+                const po = data?.reduce((sum, d) => {
+                    JSON.parse(d.pointAr)?.map((p: { id: number; point: number }) => {
+                        sum += Number(p.point);
+                    });
+
+                    return sum;
+                }, 0);
+                console.log(po, 'poo');
+
                 return po ? String(po) : '0';
             });
     }, [data]);
@@ -144,8 +163,8 @@ const Result: React.FC<{
         },
         {
             title: 'Point',
-            dataIndex: 'point',
-            key: 'point',
+            dataIndex: 'pointAr',
+            key: 'pointAr',
         },
         {
             title: 'Created At',
@@ -194,7 +213,7 @@ const Result: React.FC<{
                                             questionN: d.questionName,
                                             answerArray: JSON.parse(d.answerArray),
                                             answerSt: JSON.parse(d.answer),
-                                            pointS: d.point,
+                                            pointArr: JSON.parse(d.pointAr),
                                         });
                                         isUpdate.current = {
                                             id: record.id,
@@ -203,7 +222,6 @@ const Result: React.FC<{
                                             questionN: d.questionName,
                                             answerArray: JSON.parse(d.answerArray),
                                             answerSt: JSON.parse(d.answer),
-                                            pointS: d.point,
                                         };
                                     }
                                 });
@@ -246,7 +264,7 @@ const Result: React.FC<{
     // add question here array
     const [answerArray, setAnswerArray] = useState<string[]>([]);
     const [answerArr, setAnswerArr] = useState<string>('');
-    const [answerSt, setAnswerSt] = useState<string[]>([]);
+    const [answerSt, setAnswerSt] = useState<{ id: string; val: string }[]>([]);
     const [answerS, setAnswerS] = useState<string>('');
     // string
     const [questionN, setQuestionN] = useState<string>('');
@@ -267,9 +285,9 @@ const Result: React.FC<{
         answerArray: string[];
         answerArr?: string;
         answerSt: string[];
+        pointArr?: { id: number; val: number }[];
         answerS?: string;
         questionN: string;
-        pointS: number;
     }>({
         id: '',
         partId: '',
@@ -279,7 +297,6 @@ const Result: React.FC<{
         answerSt: [],
         answerS: '',
         questionN: '',
-        pointS: 0,
     });
     const [upData, setUpData] = useState<{
         id: string;
@@ -287,10 +304,10 @@ const Result: React.FC<{
         occupation: string;
         answerArray: string[];
         answerArr?: string;
-        answerSt: string[];
-        answerS?: string;
+        answerSt: { id: string; val: string }[];
+        answerS?: { id: string; val: string };
         questionN: string;
-        pointS: number;
+        pointArr?: { id: number; point: number }[];
         which?: {
             aArr?: number;
             aSt?: number;
@@ -302,9 +319,7 @@ const Result: React.FC<{
         answerArray: [],
         answerArr: '',
         answerSt: [],
-        answerS: '',
         questionN: '',
-        pointS: 0,
     });
     const handleAddQuestion = async () => {
         let errF = {
@@ -320,11 +335,12 @@ const Result: React.FC<{
                 answerSt.length &&
                 JSON.stringify(answerSt).length < 300 &&
                 questionN &&
-                pointS
+                pointArr.length === answerSt.length &&
+                !pointArr.some((v) => !v.point)
             ) {
                 const res = await questionAPI.add(
                     questionN,
-                    Number(pointS),
+                    JSON.stringify(pointArr),
                     result.Id,
                     'array',
                     JSON.stringify(answerArray),
@@ -344,8 +360,8 @@ const Result: React.FC<{
                 }
             }
         } else {
-            if (questionN && pointS) {
-                const res = await questionAPI.add(questionN, Number(pointS), result.Id, 'string');
+            if (questionN && pointArr.length) {
+                const res = await questionAPI.add(questionN, JSON.stringify(pointArr), result.Id, 'string');
                 if (res === 'ok') {
                     toast('Add successfully!');
                     setReload(res);
@@ -356,16 +372,31 @@ const Result: React.FC<{
                 }
             }
         }
+        console.log('0', pointArr, 'pointS', pointS, 'answerSt', answerSt);
+
         if (!answerArray.length) {
+            console.log('1');
+
             errF.ansArr = true;
         }
         if (!answerSt.length) {
+            console.log('2');
+
             errF.ansS = true;
         }
         if (!questionN) {
+            console.log('3');
+
             errF.name = true;
         }
-        if (!pointS) {
+        if (!pointS && !(pointArr.length === answerSt.length)) {
+            console.log('4');
+
+            errF.point = true;
+        }
+        if ((pointArr.some((v) => !v.point) || pointArr.length !== answerSt.length) && !pointS) {
+            console.log('5');
+
             errF.point = true;
         }
         setErr(errF);
@@ -394,8 +425,8 @@ const Result: React.FC<{
         },
         {
             title: 'Point',
-            dataIndex: 'point',
-            key: 'point',
+            dataIndex: 'pointAr',
+            key: 'pointAr',
         },
 
         {
@@ -425,8 +456,8 @@ const Result: React.FC<{
 
         {
             title: 'Point',
-            dataIndex: 'point',
-            key: 'point',
+            dataIndex: 'pointAr',
+            key: 'pointAr',
         },
 
         {
@@ -564,16 +595,16 @@ const Result: React.FC<{
                         <Div width="100%" display="block">
                             {answerSt.map((a, index) => (
                                 <Div
-                                    key={a}
+                                    key={a.id}
                                     css="position: relative; &:hover{    background-color: #d9d8d6; border-radius: 5px; padding: 2px 5px;}"
                                 >
                                     <P size="1.4rem" css="width: 100%; ">
-                                        {index + 1} -- {a}
+                                        {index + 1} -- {a.val}
                                     </P>
                                     <Div
                                         width="auto"
                                         css="font-size: 17px; padding: 2px; cursor: var(--pointer); position: absolute; top: 2px; right: 0;"
-                                        onClick={() => setAnswerSt((pre) => pre.filter((aR) => aR !== a))}
+                                        onClick={() => setAnswerSt((pre) => pre.filter((aR) => aR.id !== a.id))}
                                     >
                                         <CloseI />
                                     </Div>
@@ -598,12 +629,14 @@ const Result: React.FC<{
                             onClick={() => {
                                 let checkA = false;
                                 if (answerS) {
+                                    console.log(answerS, 'answerS1', answerArray);
+
                                     if (answerArray.some((answer) => answer === answerS)) {
                                         answerSt.forEach((a) => {
-                                            if (answerArr === a) checkA = true;
+                                            if (answerArr === a.val) checkA = true;
                                         });
                                         if (!checkA) {
-                                            setAnswerSt([...answerSt, answerS]);
+                                            setAnswerSt([...answerSt, { id: uuidv4(), val: answerS }]);
                                         }
                                         setAnswerS('');
                                     } else {
@@ -619,21 +652,53 @@ const Result: React.FC<{
                     </Div>
                 </Div>
             ),
-            point: (
-                <InputA
-                    type="number"
-                    placeholder="Point"
-                    value={pointS}
-                    css={`
-                        padding: 3px 4px;
-                        width: 80px;
-                        border-color: ${err.point ? 'red' : ''};
-                    `}
-                    onChange={(e) => {
-                        setPointS(e.target.value);
-                        setErr({ ...err, point: false });
-                    }}
-                />
+            pointAr: (
+                <Div wrap="wrap">
+                    <Div wrap="wrap">
+                        {answerSt.map((f, index) => {
+                            return (
+                                <P
+                                    css={`
+                                        width: 100%;
+                                    `}
+                                >
+                                    {index + 1} --{' '}
+                                    {pointArr.filter((p) => p.id === f.id)[0]?.point
+                                        ? pointArr.filter((p) => p.id === f.id)[0]?.point
+                                        : 0}
+                                </P>
+                            );
+                        })}
+                    </Div>
+                    {answerSt.map((a, index) => (
+                        <InputA
+                            key={index + a.id}
+                            type="number"
+                            placeholder={`Point for ${a}`}
+                            value={pointArr.filter((p) => p.id === a.id)[0]?.point ?? 0}
+                            css={`
+                                padding: 3px 4px;
+                                width: 80px;
+                                border-color: ${err.point ? 'red' : ''};
+                            `}
+                            onChange={(e) => {
+                                if (!pointArr.some((p) => p.id === a.id)) {
+                                    setPointArr([...pointArr, { id: a.id, point: e.target.value }]);
+                                } else {
+                                    setPointArr((pre) =>
+                                        pre.map((p) => {
+                                            if (p.id === a.id) {
+                                                p.point = e.target.value;
+                                            }
+                                            return p;
+                                        }),
+                                    );
+                                }
+                                setErr({ ...err, point: false });
+                            }}
+                        />
+                    ))}
+                </Div>
             ),
         },
     ];
@@ -660,18 +725,18 @@ const Result: React.FC<{
                 />
             ),
 
-            point: (
+            pointAr: (
                 <InputA
                     type="number"
                     placeholder="Point"
-                    value={pointS}
+                    value={pointArr[0]?.point}
                     css={`
                         padding: 3px 4px;
                         width: 80px;
                         border-color: ${err.point ? 'red' : ''};
                     `}
                     onChange={(e) => {
-                        setPointS(e.target.value);
+                        setPointArr([{ id: uuidv4(), point: e.target.value }]);
                         setErr({ ...err, point: false });
                     }}
                 />
@@ -680,7 +745,7 @@ const Result: React.FC<{
     ];
 
     data?.map((d, index) => {
-        console.log('yes array', d);
+        console.log('yes array', d?.pointAr, JSON.parse(d?.pointAr));
 
         if (d.answerType === 'array') {
             console.log('yes array');
@@ -701,14 +766,22 @@ const Result: React.FC<{
                 ),
                 answer: (
                     <Div width="auto" display="block">
-                        {JSON.parse(d.answer).map((a: string, index: number) => (
-                            <P key={a} size="1.4rem" css="width: 100%;">
-                                {index + 1} -- {a}
+                        {JSON.parse(d.answer).map((a: { id: string; val: string }, index: number) => (
+                            <P key={a.id} size="1.4rem" css="width: 100%;">
+                                {index + 1} -- {a.val}
                             </P>
                         ))}
                     </Div>
                 ),
-                point: d.point,
+                pointAr: JSON.parse(d.pointAr)?.length && (
+                    <Div wrap="wrap" justify="left">
+                        {JSON.parse(d.pointAr)?.map((p: { id: number; point: string }, indexP: number) => (
+                            <P key={p.id} css="width: 100%;">
+                                {indexP + 1} -- {p?.point}
+                            </P>
+                        ))}
+                    </Div>
+                ),
                 createdAt: moment(d.createdAt).format('YYYY-MM-DD HH:mm:ss'),
             });
         } else {
@@ -718,7 +791,17 @@ const Result: React.FC<{
                 answerType: d.answerType,
                 index: index + 1,
                 questionName: d.questionName,
-                point: d.point,
+                pointAr: JSON.parse(d.pointAr)?.length && (
+                    <Div wrap="wrap" justify="left">
+                        {JSON.parse(d?.pointAr)?.map((p: { id: number; point: string }, indexP: number) => {
+                            return (
+                                <P key={p.id} css="width: 100%;">
+                                    {p?.point}
+                                </P>
+                            );
+                        })}
+                    </Div>
+                ),
                 createdAt: moment(d.createdAt).format('YYYY-MM-DD HH:mm:ss'),
             });
         }
@@ -729,7 +812,15 @@ const Result: React.FC<{
             if (!upData.questionN) checkUpdata.name = true;
             if (!upData.answerArray.length) checkUpdata.ansArr = true;
             if (!upData.answerSt.length) checkUpdata.ansS = true;
-            if (!upData.pointS) checkUpdata.point = true;
+            if (
+                !upData.pointArr ||
+                !(
+                    upData?.pointArr &&
+                    upData.pointArr.some((p) => !p.point) &&
+                    upData.pointArr.length === upData.answerSt.length
+                )
+            )
+                checkUpdata.point = true;
             if (
                 JSON.stringify(isUpdate.current) !== JSON.stringify(upData) &&
                 upData.id &&
@@ -739,7 +830,9 @@ const Result: React.FC<{
                 upData.answerArray.length &&
                 upData.questionN &&
                 upData.answerSt.length &&
-                upData.pointS
+                upData.pointArr &&
+                !upData.pointArr.some((p) => !p.point) &&
+                upData.pointArr?.length === upData.answerSt.length
             ) {
                 const res = await questionAPI.update(
                     upData.id,
@@ -747,10 +840,10 @@ const Result: React.FC<{
                     upData.partId,
                     upData.occupation,
                     upData.questionN,
-                    upData.pointS,
                     type,
                     JSON.stringify(upData.answerArray),
                     JSON.stringify(upData.answerSt),
+                    JSON.stringify(upData.pointArr),
                 );
                 if (res) {
                     setReload(`${Math.random() * 100}updateQuestion`);
@@ -764,7 +857,7 @@ const Result: React.FC<{
             }
         } else {
             if (!upData.questionN) checkUpdata.name = true;
-            if (!upData.pointS) checkUpdata.point = true;
+            if (!upData.pointArr?.length) checkUpdata.point = true;
             if (
                 JSON.stringify(isUpdate.current) !== JSON.stringify(upData) &&
                 upData.id &&
@@ -772,7 +865,7 @@ const Result: React.FC<{
                 upData.occupation &&
                 user?.id &&
                 upData.questionN &&
-                upData.pointS
+                upData.pointArr?.length
             ) {
                 const res = await questionAPI.update(
                     upData.id,
@@ -780,8 +873,10 @@ const Result: React.FC<{
                     upData.partId,
                     upData.occupation,
                     upData.questionN,
-                    upData.pointS,
                     type,
+                    undefined,
+                    undefined,
+                    JSON.stringify(upData.pointArr),
                 );
                 if (res) {
                     setReload(`${Math.random() * 100}updateQuestion`);
@@ -819,8 +914,8 @@ const Result: React.FC<{
         },
         {
             title: 'Point',
-            dataIndex: 'point',
-            key: 'point',
+            dataIndex: 'pointAr',
+            key: 'pointAr',
         },
 
         {
@@ -875,7 +970,6 @@ const Result: React.FC<{
                 console.log('111', d);
 
                 const fff = upData.answerSt;
-
                 d.questionName = (
                     <Textarea
                         value={upData.questionN}
@@ -933,11 +1027,19 @@ const Result: React.FC<{
                                                 border-radius: 5px;
                                             `}
                                             onClick={() => {
-                                                setUpData({
-                                                    ...upData,
-                                                    answerArr: a,
-                                                    which: { ...upData.which, aArr: index + 1 },
-                                                });
+                                                if (upData.which?.aArr === index + 1 && upData.answerArr === a) {
+                                                    setUpData({
+                                                        ...upData,
+                                                        answerArr: '',
+                                                        which: { ...upData.which, aArr: undefined },
+                                                    });
+                                                } else {
+                                                    setUpData({
+                                                        ...upData,
+                                                        answerArr: a,
+                                                        which: { ...upData.which, aArr: index + 1 },
+                                                    });
+                                                }
                                             }}
                                         >
                                             <P size="1.4rem" css="width: 100%; ">
@@ -1043,9 +1145,9 @@ const Result: React.FC<{
                         >
                             {fff.length ? (
                                 <Div width="100%" display="block" css="margin-bottom: 4px;">
-                                    {fff.map((a: string, index: number) => (
+                                    {fff.map((a: { id: string; val: string }, index: number) => (
                                         <Div
-                                            key={a}
+                                            key={a.id}
                                             css={`
                                                 position: relative;
                                                 cursor: var(--pointer);
@@ -1056,16 +1158,24 @@ const Result: React.FC<{
                                                 padding: 2px 5px;
                                                 border-radius: 5px;
                                             `}
-                                            onClick={() =>
-                                                setUpData({
-                                                    ...upData,
-                                                    answerS: a,
-                                                    which: { ...upData.which, aSt: index + 1 },
-                                                })
-                                            }
+                                            onClick={() => {
+                                                if (upData.which?.aSt === index + 1 && upData.answerS?.id === a.id) {
+                                                    setUpData({
+                                                        ...upData,
+                                                        answerS: undefined,
+                                                        which: { ...upData.which, aSt: undefined },
+                                                    });
+                                                } else {
+                                                    setUpData({
+                                                        ...upData,
+                                                        answerS: a,
+                                                        which: { ...upData.which, aSt: index + 1 },
+                                                    });
+                                                }
+                                            }}
                                         >
                                             <P size="1.4rem" css="width: 100%; ">
-                                                {index + 1} -- {a}
+                                                {index + 1} -- {a.val}
                                             </P>
                                             <Div
                                                 width="auto"
@@ -1087,10 +1197,10 @@ const Result: React.FC<{
                                 ''
                             )}
                             <Textarea
-                                value={upData.answerS}
+                                value={upData.answerS?.id}
                                 onChange={(e) => {
                                     setErr({ ...err, ansS: false });
-                                    setUpData({ ...upData, answerS: e.target.value });
+                                    // setUpData({ ...upData, answerS:  });
                                 }}
                                 css={`
                                     padding: 3px;
@@ -1107,8 +1217,9 @@ const Result: React.FC<{
                                         if (
                                             index + 1 === upData.which?.aSt &&
                                             upData.answerS &&
-                                            upData.answerArray.includes(upData.answerS)
+                                            upData.answerArray.includes(upData.answerS.val)
                                         ) {
+                                            // update data and check
                                             checkA = true;
                                             aR = upData.answerS;
                                             return aR;
@@ -1118,16 +1229,17 @@ const Result: React.FC<{
 
                                     if (!checkA) {
                                         upData.answerSt.forEach((a) => {
-                                            if (upData.answerS === a) checkA = true;
+                                            if (upData.answerS === a) checkA = true; // check
                                         });
                                         console.log();
 
                                         if (!checkA && upData?.answerS) {
-                                            if (upData.answerArray.includes(upData.answerS)) {
+                                            if (upData.answerArray.includes(upData.answerS.val)) {
+                                                // if result it has been existed then add or err
                                                 setUpData({
                                                     ...upData,
                                                     answerSt: [...upData?.answerSt, upData?.answerS],
-                                                    answerS: '',
+                                                    answerS: undefined,
                                                 });
                                             } else {
                                                 setErr({ ...err, ansS: true });
@@ -1138,7 +1250,7 @@ const Result: React.FC<{
                                             return {
                                                 ...pre,
                                                 answerSt: r,
-                                                answerS: '',
+                                                answerS: undefined,
                                                 which: { ...upData.which, aSt: undefined },
                                             };
                                         });
@@ -1150,26 +1262,121 @@ const Result: React.FC<{
                         </Div>
                     );
                 }
-                d.point = (
-                    <Textarea
-                        value={upData.pointS}
-                        onChange={(e) => {
-                            if (!isNaN(Number(e.target.value)))
-                                setUpData({ ...upData, pointS: Number(e.target.value) });
-                            if (!e.target.value) {
-                                setErr({ ...err, point: true });
-                            } else {
-                                setErr({ ...err, point: false });
+                d.pointAr =
+                    d.answerType === 'array' ? (
+                        <>
+                            <Div wrap="wrap">
+                                <Div wrap="wrap">
+                                    {fff?.map((f, index) => {
+                                        return (
+                                            <P
+                                                css={`
+                                                    width: 100%;
+                                                `}
+                                            >
+                                                {index + 1} --{' '}
+                                                {upData.pointArr?.filter((p) => p.id === index + 1)[0]?.point
+                                                    ? upData.pointArr?.filter((p) => p.id === index + 1)[0]?.point
+                                                    : 0}
+                                            </P>
+                                        );
+                                    })}
+                                </Div>
+                                {fff?.map((f, index) => (
+                                    <Textarea
+                                        key={f.id}
+                                        value={
+                                            upData.pointArr?.filter((p) => p.id === index + 1)[0]?.point
+                                                ? upData.pointArr?.filter((p) => p.id === index + 1)[0]?.point
+                                                : 0
+                                        }
+                                        onChange={(e) => {
+                                            if (!isNaN(Number(e.target.value)))
+                                                if (upData.pointArr?.some((p) => p.id === index + 1)) {
+                                                    const newUp = upData.pointArr?.map((p) => {
+                                                        if (p.id === index + 1) {
+                                                            p.point = Number(e.target.value);
+                                                        }
+                                                        return p;
+                                                    });
+                                                    setUpData({
+                                                        ...upData,
+                                                        pointArr: newUp,
+                                                    });
+                                                } else {
+                                                    setUpData({
+                                                        ...upData,
+                                                        pointArr: [
+                                                            ...(upData.pointArr ?? []),
+                                                            { id: index + 1, point: Number(e.target.value) },
+                                                        ],
+                                                    });
+                                                    // setUpData({ ...upData, pointS: Number(e.target.value) });
+                                                }
+
+                                            if (!e.target.value) {
+                                                setErr({ ...err, point: true });
+                                            } else {
+                                                setErr({ ...err, point: false });
+                                            }
+                                        }}
+                                        css={`
+                                            padding: 3px;
+                                            border-radius: 5px;
+                                            margin-right: 3px;
+                                            border-color: ${err.point ? 'red' : ''};
+                                        `}
+                                    />
+                                ))}
+                            </Div>
+                        </>
+                    ) : (
+                        <Textarea
+                            value={
+                                upData.pointArr
+                                    ? upData.pointArr[0]?.point
+                                        ? upData.pointArr[0]?.point
+                                        : typeof d.pointAr === 'string'
+                                        ? d.pointAr
+                                        : 0
+                                    : 0
                             }
-                        }}
-                        css={`
-                            padding: 3px;
-                            border-radius: 5px;
-                            margin-right: 3px;
-                            border-color: ${err.point ? 'red' : ''};
-                        `}
-                    />
-                );
+                            onChange={(e) => {
+                                if (!isNaN(Number(e.target.value)))
+                                    if (upData.pointArr) {
+                                        const newUp = upData.pointArr?.map((p) => {
+                                            p.point = Number(e.target.value);
+                                            return p;
+                                        });
+                                        setUpData({
+                                            ...upData,
+                                            pointArr: newUp,
+                                        });
+                                    } else {
+                                        setUpData({
+                                            ...upData,
+                                            pointArr: [
+                                                ...(upData.pointArr ?? []),
+                                                { id: 1, point: Number(e.target.value) },
+                                            ],
+                                        });
+                                        // setUpData({ ...upData, pointS: Number(e.target.value) });
+                                    }
+
+                                if (!e.target.value) {
+                                    setErr({ ...err, point: true });
+                                } else {
+                                    setErr({ ...err, point: false });
+                                }
+                            }}
+                            css={`
+                                padding: 3px;
+                                border-radius: 5px;
+                                margin-right: 3px;
+                                border-color: ${err.point ? 'red' : ''};
+                            `}
+                        />
+                    );
             }
             return d;
         });
@@ -1242,7 +1449,10 @@ const Result: React.FC<{
                     `}
                 >
                     <P
-                        onClick={() => setType('string')}
+                        onClick={() => {
+                            setType('string');
+                            setPointS('');setPointArr([]);
+                        }}
                         css={`
                             width: max-content;
                             ${!(type === 'array') ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}
@@ -1308,7 +1518,10 @@ const Result: React.FC<{
                         </Div>
                     </Div>
                     <P
-                        onClick={() => setType('array')}
+                        onClick={() => {
+                            setType('array');
+                            setPointS('');setPointArr([])
+                        }}
                         css={`
                             width: max-content;
                             ${type === 'array' ? 'background-image: linear-gradient(123deg, #37aece, #070101);' : ''}

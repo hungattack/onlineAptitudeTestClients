@@ -38,7 +38,7 @@ export interface PropsRoomData {
                     CreatedAt: string;
                     Id: string;
                     PartId: string;
-                    Point: 20;
+                    PointAr: string;
                     QuestionName: string;
                     UpdatedAt: string;
                 }[];
@@ -111,7 +111,9 @@ const TestingRoom = () => {
     const cates = roomData?.Cates?.$values.map((c) => {
         timeOut += c.TimeOut;
         c.Questions?.$values.forEach((q) => {
-            point += q.Point;
+            JSON.parse(q.PointAr).map((p: { id: number; point: string }) => {
+                point += Number(p.point);
+            });
         });
     });
     const questions = roomData?.Cates?.$values.map((c) => {

@@ -78,6 +78,7 @@ const Option: React.FC<{
         | {
               id: string;
               name: string;
+              jobName?: string;
           }
         | undefined;
 }> = ({ setResult, reChange, result, setCateJob, catePart }) => {
@@ -105,6 +106,7 @@ const Option: React.FC<{
             { id: 'register', name: 'Candidates register' },
             { id: 'success', name: 'Success candidates' },
             { id: 'failed', name: 'Failed candidates' },
+            { id: 'duration', name: 'Candidates in duration' },
         ],
     });
     const [err, setErr] = useState<{ id: string; value: String }>();
@@ -144,7 +146,7 @@ const Option: React.FC<{
         fetch();
         async function fetch() {
             const data: PropsOccupationData[] = await occupationAPI.getOccupation(user?.id);
-            if (data.length) {
+            if (data?.length) {
                 let items: any = [];
                 if (data?.length) {
                     // reFix data option
@@ -672,9 +674,12 @@ const Option: React.FC<{
                             className={styles.itemPosition}
                             key={po.id}
                             css={`
-                                color: ${po.name === catePart?.id ? '#9ef3f7' : ''};
+                                &:hover {
+                                    color: #9ef3f7;
+                                }
+                                color: ${po.name === catePart?.jobName ? '#9ef3f7' : ''};
                             `}
-                            onClick={() => setCateJob({ id: po.name, name: 'candidate' })}
+                            onClick={() => setCateJob({ id: po.id, name: 'candidate', jobName: po.name })}
                         >
                             {po.name}
                         </P>

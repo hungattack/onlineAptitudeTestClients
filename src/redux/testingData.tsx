@@ -7,7 +7,7 @@ export interface PropsTestingDataRD {
     status: boolean;
     startTime: { id: string; start: string; end: string; finish: boolean }[];
     canProcess: {
-        id: string;
+        id: string; // id catePart
         valueRD: string;
         valueInputRD: string;
         choicesRD: string;

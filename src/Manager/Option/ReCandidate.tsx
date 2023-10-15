@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Div, InputA, P } from '../../styleComponent/styleComponent';
+import { Div, H3, InputA, P } from '../../styleComponent/styleComponent';
 import { Space, Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { AddI } from '../../assets/Icons/Icons';
@@ -16,13 +16,14 @@ interface DataType {
     education: string;
     experience: number;
     address: string;
-    birthday: string;
+    birthDay: string;
     email: string;
     occupationId: string;
     phoneNumber: string;
     userName: string;
     userId: string;
     password: string;
+    start: boolean;
     occupation: {
         name: string;
     };
@@ -31,6 +32,7 @@ const ReCandidate: React.FC<{
     cate: {
         id: string;
         name: string;
+        jobName?: string;
     };
 }> = ({ cate }) => {
     const { user } = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
@@ -42,9 +44,9 @@ const ReCandidate: React.FC<{
     console.log(cate, 'cate');
 
     const { data, refetch } = useQuery({
-        queryKey: ['Candidates', 1],
+        queryKey: [cate.id, 1],
         queryFn: async () => {
-            const rs: DataType[] = await candidateAPI.get(user?.id);
+            const rs: DataType[] = await candidateAPI.get(cate.id, user?.id);
             return rs;
         },
     });
@@ -113,36 +115,7 @@ const ReCandidate: React.FC<{
                         </P>
                     </Space>
                 ) : generate && record.id === generate ? (
-                    <Space size="middle" key={record.id}>
-                        <InputA
-                            type="text"
-                            placeholder="Generate user name"
-                            css={`
-                                padding: 4px;
-                                border-radius: 5px;
-                                border-color: ${err.userName ? 'red' : ''};
-                            `}
-                            value={account.userName}
-                            onChange={(e) => {
-                                setAccount({ ...account, userName: e.target.value });
-                                setErr({ ...err, userName: false });
-                            }}
-                        />
-                        <InputA
-                            type="text"
-                            placeholder="Generate password"
-                            css={`
-                                padding: 4px;
-                                border-radius: 5px;
-                                border-color: ${err.password ? 'red' : ''};
-                            `}
-                            value={account.password}
-                            onChange={(e) => {
-                                setErr({ ...err, password: false });
-                                setAccount({ ...account, password: e.target.value });
-                            }}
-                        />
-                    </Space>
+                    <Space size="middle" key={record.id}></Space>
                 ) : (
                     ''
                 ),
@@ -261,8 +234,224 @@ const ReCandidate: React.FC<{
     ];
 
     return (
-        <Div css="overflow-x: overlay;">
-            <Table style={{ width: '85%', overflow: 'overlay' }} columns={columns} dataSource={data} />
+        <Div display="block" css="overflow-x: overlay; background-color: #272727;">
+            <H3 css="width: 97%; margin: 10px; color: #f2f2f2f7;"> {cate?.jobName}</H3>
+            {/* <Table style={{ width: '85%', overflow: 'overlay' }} columns={columns} dataSource={data} /> */}
+            {data?.map((d) => (
+                <Div
+                    key={d.id}
+                    width="80%"
+                    wrap="wrap"
+                    css={`
+                        position: relative;
+                        margin: 10px auto;
+                        padding: 10px;
+                        background-color: #4c5260;
+                        border-radius: 5px;
+                        color: #f2f2f2f7;
+                        h4 {
+                            font-size: 1.5rem;
+                            margin: 5px 0;
+                            margin-right: 10px;
+                        }
+                        p {
+                            font-size: 1.3rem;
+                        }
+                    `}
+                >
+                    <Div justify="left">
+                        <h4>Name:</h4>
+                        <P>{d.name}</P>
+                    </Div>{' '}
+                    <Div justify="left">
+                        <h4>Phone number:</h4>
+                        <P>{d.phoneNumber}</P>
+                    </Div>{' '}
+                    <Div justify="left">
+                        <h4>Email:</h4>
+                        <P>{d.email}</P>
+                    </Div>
+                    <Div justify="left">
+                        <h4>Education:</h4>
+                        <P>{d.education}</P>
+                    </Div>
+                    <Div justify="left">
+                        <h4>Experience:</h4>
+                        <P>{d.experience}</P>
+                    </Div>
+                    <Div justify="left">
+                        <h4>BirthDay:</h4>
+                        <P>{d.birthDay}</P>
+                    </Div>{' '}
+                    <Div justify="left">
+                        <h4>Address:</h4>
+                        <P>{d.address}</P>
+                    </Div>{' '}
+                    <Div justify="left" css="border-top: 1px solid silver; margin-top: 5px;">
+                        <h4>Job's name:</h4>
+                        <P>{d.occupation.name}</P>
+                    </Div>
+                    <Div justify="left">
+                        <h4>Room key:</h4>
+                        <P>{d.occupationId}</P>
+                    </Div>
+                    <Div justify="left">
+                        <h4>UserName:</h4>
+                        <P>{d.userName}</P>
+                    </Div>
+                    <Div justify="left">
+                        <h4>Password:</h4>
+                        <P>{d.password}</P>
+                    </Div>
+                    <Div justify="left">
+                        <h4>Status:</h4>
+                        <P>{d.start}</P>
+                    </Div>
+                    <Div wrap="wrap" width="70%" justify="left" css="margin-top: 10px; input{margin: 0 5px;}">
+                        {generate === d.id && !d.userName && !d.password && (
+                            <Div css="margin-top: 10px; input{margin: 0 5px;}">
+                                <InputA
+                                    type="text"
+                                    placeholder="Generate user name"
+                                    css={`
+                                        padding: 4px;
+                                        border-radius: 5px;
+                                        border-color: ${err.userName ? 'red' : ''};
+                                    `}
+                                    value={account.userName}
+                                    onChange={(e) => {
+                                        setAccount({ ...account, userName: e.target.value });
+                                        setErr({ ...err, userName: false });
+                                    }}
+                                />
+                                <InputA
+                                    type="text"
+                                    placeholder="Generate password"
+                                    css={`
+                                        padding: 4px;
+                                        border-radius: 5px;
+                                        border-color: ${err.password ? 'red' : ''};
+                                    `}
+                                    value={account.password}
+                                    onChange={(e) => {
+                                        setErr({ ...err, password: false });
+                                        setAccount({ ...account, password: e.target.value });
+                                    }}
+                                />
+                            </Div>
+                        )}
+                        <Div justify="space-around" css="margin-top: 10px; ">
+                            {generate === d.id ? (
+                                <>
+                                    {!d.userName && !d.password && (
+                                        <>
+                                            <P
+                                                css={`
+                                                    width: max-content;
+                                                    padding: 3px 7px;
+                                                    background-color: #4785d5;
+                                                    border-radius: 5px;
+                                                    color: #fff;
+                                                    font-size: 1.3rem;
+                                                    cursor: var(--pointer);
+                                                `}
+                                                onClick={async () => {
+                                                    let check = err;
+                                                    if (!account.userName) {
+                                                        check.userName = true;
+                                                    } else {
+                                                        check.userName = false;
+                                                    }
+                                                    if (!account.password) {
+                                                        check.password = true;
+                                                    } else {
+                                                        check.password = false;
+                                                    }
+                                                    if (account.userName && account.password) {
+                                                        const res = await candidateAPI.generate(
+                                                            account.userName,
+                                                            account.password,
+                                                            d.occupationId,
+                                                            d.id,
+                                                            d.userId,
+                                                        );
+                                                        if (res === 'ok') refetch();
+                                                        toast(res);
+                                                    }
+                                                    setErr({ ...check });
+                                                }}
+                                            >
+                                                Ready for the Generation
+                                            </P>
+                                            <P
+                                                css={`
+                                                    width: max-content;
+                                                    padding: 3px 7px;
+                                                    background-color: #ca4a4a;
+                                                    border-radius: 5px;
+                                                    color: #fff;
+                                                    font-size: 1.3rem;
+                                                    cursor: var(--pointer);
+                                                `}
+                                                onClick={() => {
+                                                    setGenerate(undefined);
+                                                }}
+                                            >
+                                                Cancel the Generation
+                                            </P>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                !d.userName &&
+                                !d.password && (
+                                    <P
+                                        css={`
+                                            padding: 3px 7px;
+                                            background-color: #4785d5;
+                                            border-radius: 5px;
+                                            color: #fff;
+                                            font-size: 1.3rem;
+                                            cursor: var(--pointer);
+                                        `}
+                                        onClick={() => {
+                                            setGenerate(d.id);
+                                        }}
+                                    >
+                                        Generate Account name & Password
+                                    </P>
+                                )
+                            )}
+
+                            <P
+                                css={`
+                                    position: absolute;
+                                    top: 10px;
+                                    right: 15px;
+                                    padding: 3px 7px;
+                                    background-color: #c43a68;
+                                    border-radius: 5px;
+                                    color: #fff;
+                                    font-size: 1.3rem;
+                                    cursor: var(--pointer);
+                                `}
+                                onClick={async () => {
+                                    const ok = window.confirm('Do you want to delete this item?');
+                                    if (ok) {
+                                        const res = await candidateAPI.delete(d.id, d.userId);
+                                        if (res === 'ok') {
+                                            refetch();
+                                            toast('Delete successful!');
+                                        }
+                                    }
+                                }}
+                            >
+                                Delete
+                            </P>
+                        </Div>
+                    </Div>
+                </Div>
+            ))}
         </Div>
     );
 };

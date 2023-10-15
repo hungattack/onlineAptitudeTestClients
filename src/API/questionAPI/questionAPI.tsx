@@ -15,7 +15,7 @@ class Question {
     };
     add = async (
         QuestionName: string,
-        Point: number,
+        Point: string | number,
         PartId: string,
         AnswerType: string,
         AnswerArray?: string,
@@ -27,7 +27,7 @@ class Question {
                 AnswerType,
                 AnswerArray,
                 Answer,
-                Point,
+                PointAr: Point,
                 PartId,
             });
             return response.data;
@@ -42,10 +42,10 @@ class Question {
         PartId: string,
         OccupationId: string,
         QuestionName: string,
-        Point: number,
         Type: string,
         AnswerArray?: string,
         Answer?: string,
+        PointAr?: string,
     ) => {
         try {
             const response = await http.put(`/Question/Update`, {
@@ -54,10 +54,10 @@ class Question {
                 PartId,
                 OccupationId,
                 QuestionName,
-                Point,
                 AnswerArray,
                 Answer,
                 Type,
+                PointAr,
             });
             return response.data;
         } catch (error) {

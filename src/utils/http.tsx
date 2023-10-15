@@ -6,7 +6,7 @@ class Http {
         this.instance = axios.create({
             baseURL: process.env.REACT_APP_NEGA,
             headers: {
-                contentType: 'application/json',
+                'Content-Type': 'application/json; charset=utf-8',
             },
         });
     }

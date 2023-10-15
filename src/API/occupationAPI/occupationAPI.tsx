@@ -40,11 +40,35 @@ class Occupation {
             return errorHandling(err);
         }
     };
-    addInfo = async (Id: string, Info: string) => {
+    deleteInfo = async (id: number, occupationId: string) => {
+        try {
+            const response = await http.delete(`/Occupation/DeleteInfo/${id}/${occupationId}`);
+            return response.data;
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
+    addInfo = async (Info: {
+        occupationId: string;
+        introduction: string;
+        position: string;
+        address: string;
+        company: string;
+        contact: string;
+        name: string;
+        requirement: string;
+    }) => {
         try {
             const response = await http.post(`/Occupation/AddInfo`, {
-                Id,
-                Info,
+                OccupationId: Info.occupationId,
+                Introduction: Info.introduction,
+                Position: Info.position,
+                Address: Info.address,
+                Company: Info.company,
+                Contact: Info.contact,
+                Name: Info.name,
+                Requirement: Info.requirement,
             });
             return response.data;
         } catch (error) {
