@@ -3,7 +3,19 @@ import errorHandling from '../errorHandling';
 import http from '../../utils/http';
 
 class QuestionHistory {
-    add = async (
+    add = async (UserId: string, RoomId: string) => {
+        try {
+            const response = await http.post(`/ResultHistory/AddNew`, {
+                UserId,
+                OccupationId: RoomId,
+            });
+            return response.data;
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
+    addResult = async (
         UserId: string,
         RoomId: string,
         CatePartId: string,
@@ -16,12 +28,12 @@ class QuestionHistory {
         },
     ) => {
         try {
-            const response = await http.post(`/ResultHistory/AddNew`, {
+            const response = await http.post(`/ResultHistory/AddNewResult`, {
                 UserId,
                 OccupationId: RoomId,
                 CatePartId,
                 QuestionId: Result.id,
-                Answer: Result.user,
+                Answer: JSON.stringify(Result),
             });
             return response.data;
         } catch (error) {

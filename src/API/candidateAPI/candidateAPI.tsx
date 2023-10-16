@@ -9,10 +9,19 @@ class Candidate {
             if (type === 'register') {
                 const response = await http.get(`/Candidate/ListingRegisters/${id}`);
                 return response.data;
-            } else if (type === 'duration') {
-                const response = await http.get(`/Candidate/ListingDuration/${id}`);
+            } else if (type === 'finish') {
+                const response = await http.get(`/Candidate/ListingFinish/${id}`);
                 return response.data;
             }
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
+    getExams = async (userId: string, manaId?: string) => {
+        try {
+            const response = await http.get(`/ResultHistory/ListingExams/${userId}/${manaId}`);
+            return response.data;
         } catch (error) {
             const err: any = error as AxiosError;
             return errorHandling(err);

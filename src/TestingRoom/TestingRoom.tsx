@@ -10,6 +10,8 @@ import InCharger from './InCharger';
 import { useDispatch, useSelector } from 'react-redux';
 import { PropsTestingDataRD, setEnd, setStartRD } from '../redux/testingData';
 import { LoadingI } from '../assets/Icons/Icons';
+import Result from './Result';
+import { PropsUserDataRD } from '../redux/userData';
 type FieldType = {
     username?: string;
     password?: string;
@@ -55,6 +57,9 @@ const TestingRoom = () => {
     const { status, startTime, id_room, cateP } = useSelector(
         (state: { persistedReducer: { testingData: PropsTestingDataRD } }) => state.persistedReducer.testingData,
     );
+    const { login, register, user } = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
+        return state.persistedReducer.userData;
+    });
     const [start, setStart] = useState<string>('stop');
     const [catePart, setCatePart] = useState<string>(cateP);
     const [roomData, setRoomData] = useState<PropsRoomData>();
@@ -159,7 +164,7 @@ const TestingRoom = () => {
     const handleFindRoom = async () => {
         if (code) {
             setLoading(true);
-            const res: PropsRoomData | string = await roomAPI.getRoom(code);
+            const res: PropsRoomData | string = await roomAPI.getRoom(code, user?.id);
             if (typeof res !== 'string') {
                 setCatePart(res?.Cates.$values[0].Id);
                 setRoomData(res);
@@ -215,14 +220,7 @@ const TestingRoom = () => {
                 css="height: 93%; border-right: 1px solid #878787; background-color: #3d3d3d;"
                 onClick={showDrawer}
             >
-                <Drawer
-                    title="Basic Drawer"
-                    placement="left"
-                    closable={false}
-                    onClose={onClose}
-                    open={open}
-                    key="left"
-                ></Drawer>
+                <Result roomData={roomData} />
             </Div>
             <Div width="70%" css="height: 93%; background-color: #3d3d3d; padding: 10px; overflow-y: overlay;">
                 {start === 'stop' && (

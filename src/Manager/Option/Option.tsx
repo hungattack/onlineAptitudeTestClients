@@ -104,9 +104,7 @@ const Option: React.FC<{
         position: [
             { id: 'all', name: 'All candidates' },
             { id: 'register', name: 'Candidates register' },
-            { id: 'success', name: 'Success candidates' },
-            { id: 'failed', name: 'Failed candidates' },
-            { id: 'duration', name: 'Candidates in duration' },
+            { id: 'finish', name: 'Candidates finished' },
         ],
     });
     const [err, setErr] = useState<{ id: string; value: String }>();

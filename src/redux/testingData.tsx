@@ -12,6 +12,7 @@ export interface PropsTestingDataRD {
         valueInputRD: string;
         choicesRD: string;
     }[];
+    calculate: { idCate: string; correct: number; inCorrect: number; point: number }[];
 }
 const initialState: PropsTestingDataRD = {
     status: false,
@@ -19,6 +20,7 @@ const initialState: PropsTestingDataRD = {
     id_room: '',
     startTime: [],
     canProcess: [],
+    calculate: [],
 };
 const testingData = createSlice({
     name: 'testingData',
@@ -98,8 +100,32 @@ const testingData = createSlice({
                 return c;
             });
         },
+        setCalculate: (
+            state,
+            action: { payload: { idCate: string; correct: number; inCorrect: number; point: number } },
+        ) => {
+            if (!state.calculate.some((c) => c.idCate === action.payload.idCate)) {
+                state.calculate.push(action.payload);
+            }
+        },
+        setResetAll: (state) => {
+            state.id_room = '';
+            state.cateP = '';
+            state.startTime = [];
+            state.status = false;
+            state.canProcess = [];
+        },
     },
 });
-export const { setCateP, setStartRD, setEnd, setCandidateProcess, setValueRD, setValueInputRD, setChoiceRD } =
-    testingData.actions;
+export const {
+    setCateP,
+    setResetAll,
+    setCalculate,
+    setStartRD,
+    setEnd,
+    setCandidateProcess,
+    setValueRD,
+    setValueInputRD,
+    setChoiceRD,
+} = testingData.actions;
 export default testingData.reducer;

@@ -28,6 +28,33 @@ interface DataType {
         name: string;
     };
 }
+type PropsListExams = {
+    $id: string;
+    $values: {
+        $id: string;
+        CreatedAt: string;
+        Id: string;
+        Results: {
+            $id: string;
+            $values: {
+                $id: string;
+                Answer: string;
+                CreatedAt: string;
+                Id: number;
+                UpdatedAt: string;
+                catePart: null;
+                catePartId: string;
+                occupaionId: string;
+                questionHisId: string;
+                questionId: string;
+            }[];
+        };
+        UpdatedAt: string;
+        occupation: { $id: string; Id: string; Name: string };
+        occupationId: string;
+        userId: string;
+    }[];
+};
 const ReCandidate: React.FC<{
     cate: {
         id: string;
@@ -41,6 +68,7 @@ const ReCandidate: React.FC<{
     const [account, setAccount] = useState<{ userName: string; password: string }>({ userName: '', password: '' });
     const [err, setErr] = useState<{ userName: boolean; password: boolean }>({ userName: false, password: false });
     const [generate, setGenerate] = useState<number | undefined>();
+    const [listExams, setListExams] = useState<PropsListExams | undefined>();
     console.log(cate, 'cate');
 
     const { data, refetch } = useQuery({
@@ -234,7 +262,48 @@ const ReCandidate: React.FC<{
     ];
 
     return (
-        <Div display="block" css="overflow-x: overlay; background-color: #272727;">
+        <Div display="block" css="overflow-x: overlay; background-color: #272727; position: relative; ">
+            {listExams && (
+                <Div
+                    css={`
+                        position: absolute;
+                        height: 100%;
+                        z-index: 1;
+                        top: 50%;
+                        right: 50%;
+                        left: 50%;
+                        background-color: #111111c7;
+                        translate: -50% -50%;
+                        color: #fff;
+                    `}
+                    onClick={() => setListExams(undefined)}
+                >
+                    {listExams.$values.map((l) => {
+                        const point = l.Results.$values.reduce((v, vl) => {
+                            console.log(JSON.parse(vl.Answer), 'JSON.parse(JSON.parse(vl.Answer)');
+                            JSON.parse(JSON.parse(vl.Answer).pointAr).map((r: { id: string; point: string }) => {
+                                v += Number(r.point);
+                            });
+                            return v;
+                        }, 0);
+                        return (
+                            <Div
+                                width="70%"
+                                css={`
+                                    height: 70%;
+                                    border-radius: 5px;
+                                    background-color: #333;
+                                `}
+                            >
+                                <Div wrap="wrap" css="h3{width: 100%;}">
+                                    <H3>{l.occupation.Name}</H3>
+                                    <P>{point}🎯</P>
+                                </Div>
+                            </Div>
+                        );
+                    })}
+                </Div>
+            )}
             <H3 css="width: 97%; margin: 10px; color: #f2f2f2f7;"> {cate?.jobName}</H3>
             {/* <Table style={{ width: '85%', overflow: 'overlay' }} columns={columns} dataSource={data} /> */}
             {data?.map((d) => (
@@ -302,10 +371,6 @@ const ReCandidate: React.FC<{
                     <Div justify="left">
                         <h4>Password:</h4>
                         <P>{d.password}</P>
-                    </Div>
-                    <Div justify="left">
-                        <h4>Status:</h4>
-                        <P>{d.start}</P>
                     </Div>
                     <Div wrap="wrap" width="70%" justify="left" css="margin-top: 10px; input{margin: 0 5px;}">
                         {generate === d.id && !d.userName && !d.password && (
@@ -423,31 +488,55 @@ const ReCandidate: React.FC<{
                                 )
                             )}
 
-                            <P
+                            <Div
+                                display="block"
+                                width="auto"
                                 css={`
                                     position: absolute;
                                     top: 10px;
                                     right: 15px;
-                                    padding: 3px 7px;
-                                    background-color: #c43a68;
-                                    border-radius: 5px;
-                                    color: #fff;
-                                    font-size: 1.3rem;
-                                    cursor: var(--pointer);
                                 `}
-                                onClick={async () => {
-                                    const ok = window.confirm('Do you want to delete this item?');
-                                    if (ok) {
-                                        const res = await candidateAPI.delete(d.id, d.userId);
-                                        if (res === 'ok') {
-                                            refetch();
-                                            toast('Delete successful!');
-                                        }
-                                    }
-                                }}
                             >
-                                Delete
-                            </P>
+                                <P
+                                    css={`
+                                        padding: 3px 7px;
+                                        background-color: #4d87da;
+                                        border-radius: 5px;
+                                        color: #fff;
+                                        font-size: 1.3rem;
+                                        margin: 5px 0;
+                                        cursor: var(--pointer);
+                                    `}
+                                    onClick={async () => {
+                                        const res: PropsListExams = await candidateAPI.getExams(d.userId, user?.id);
+                                        if (res) setListExams(res);
+                                    }}
+                                >
+                                    The testing exams
+                                </P>
+                                <P
+                                    css={`
+                                        padding: 3px 7px;
+                                        background-color: #c43a68;
+                                        border-radius: 5px;
+                                        color: #fff;
+                                        font-size: 1.3rem;
+                                        cursor: var(--pointer);
+                                    `}
+                                    onClick={async () => {
+                                        const ok = window.confirm('Do you want to delete this item?');
+                                        if (ok) {
+                                            const res = await candidateAPI.delete(d.id, d.userId);
+                                            if (res === 'ok') {
+                                                refetch();
+                                                toast('Delete successful!');
+                                            }
+                                        }
+                                    }}
+                                >
+                                    Delete
+                                </P>
+                            </Div>
                         </Div>
                     </Div>
                 </Div>
