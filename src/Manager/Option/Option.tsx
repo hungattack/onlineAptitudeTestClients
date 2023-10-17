@@ -140,41 +140,41 @@ const Option: React.FC<{
             position: [],
         },
     ]);
+    async function fetch() {
+        const data: PropsOccupationData[] = await occupationAPI.getOccupation(user?.id);
+        if (data?.length) {
+            let items: any = [];
+            if (data?.length) {
+                // reFix data option
+                data.forEach((d) => {
+                    items = datas.map((dd) => {
+                        if (dd.title === 'Jobs' && !dd.position.some((p) => p.id === d.Id)) {
+                            dd.position.push({
+                                id: d.Id,
+                                title: d.Name,
+                                active: d.Active,
+                                requirements: [
+                                    { title: 'Information' },
+                                    {
+                                        title: 'Question',
+                                        val: d.Cates?.$values.map((c) => {
+                                            // get Id catePart
+                                            return { id: c.Id, name: c.Name };
+                                        }),
+                                    },
+                                ],
+                            });
+                            return dd;
+                        }
+                    });
+                });
+            }
+            if (data) setDataQue(data);
+            setData(items);
+        }
+    }
     useEffect(() => {
         fetch();
-        async function fetch() {
-            const data: PropsOccupationData[] = await occupationAPI.getOccupation(user?.id);
-            if (data?.length) {
-                let items: any = [];
-                if (data?.length) {
-                    // reFix data option
-                    data.forEach((d) => {
-                        items = datas.map((dd) => {
-                            if (dd.title === 'Jobs') {
-                                dd.position.push({
-                                    id: d.Id,
-                                    title: d.Name,
-                                    active: d.Active,
-                                    requirements: [
-                                        { title: 'Information' },
-                                        {
-                                            title: 'Question',
-                                            val: d.Cates?.$values.map((c) => {
-                                                // get Id catePart
-                                                return { id: c.Id, name: c.Name };
-                                            }),
-                                        },
-                                    ],
-                                });
-                                return dd;
-                            }
-                        });
-                    });
-                }
-                if (data) setDataQue(data);
-                setData(items);
-            }
-        }
     }, []);
     useEffect(() => {
         if (reChange) {
@@ -238,35 +238,7 @@ const Option: React.FC<{
             console.log(res, 'res addnew');
 
             if (res?.id && title === 'Jobs' && firstData) {
-                setData((pre) =>
-                    pre.map((t) => {
-                        if (t.title === title && typeof t.position === 'object') {
-                            // check Does it already exist or not?
-                            let check = false;
-                            t.position.map((p) => {
-                                if (p.title === firstData) check = true;
-                            });
-                            if (!check)
-                                t.position.push({
-                                    id: res.id,
-                                    title: firstData,
-                                    active: false,
-                                    requirements: [
-                                        { title: 'Information' },
-                                        {
-                                            title: 'Question',
-                                            val: [
-                                                { id: res.id_f, name: res.name_f },
-                                                { id: res.id_s, name: res.name_s },
-                                                { id: res.id_t, name: res.name_t },
-                                            ],
-                                        },
-                                    ],
-                                });
-                        }
-                        return t;
-                    }),
-                );
+                fetch();
             }
             setFirstData('');
             setLoading(false);

@@ -27,6 +27,15 @@ class Candidate {
             return errorHandling(err);
         }
     };
+    reTest = async (userId: string, manaId: string, occupationId: string) => {
+        try {
+            const response = await http.put(`/Candidate/UpdateRetest/${userId}/${manaId}/${occupationId}`);
+            return response.data;
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
     add = async (params: {
         userId: string;
         managerId: string;

@@ -684,6 +684,7 @@ const Result: React.FC<{
                         {answerSt.map((f, index) => {
                             return (
                                 <P
+                                    key={f.id}
                                     css={`
                                         width: 100%;
                                     `}

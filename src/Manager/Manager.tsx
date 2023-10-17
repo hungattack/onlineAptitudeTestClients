@@ -4,6 +4,9 @@ import Option from './Option/Option';
 import Result from './Option/Result';
 import Information from './Option/Information';
 import ReCandidate from './Option/ReCandidate';
+import { Image } from 'antd';
+import Images from '../assets/images';
+import { Div } from '../styleComponent/styleComponent';
 const Manager = () => {
     const [reChange, setReChange] = useState<{ id: string; name: string; val: number | string }[]>();
     const [cate, setCate] = useState<{ id: string; name: string; jobName?: string }>();
@@ -31,6 +34,11 @@ const Manager = () => {
                         />
                     </div>
                 </div>
+                {!cate && (
+                    <Div width="inherit" css="background-color: #212121;">
+                        <Image src={Images.IQ} alt="" />
+                    </Div>
+                )}
                 {cate?.name === 'Question' && result && <Result result={result} setReChange={setReChange} />}
                 {cate && cate?.name === 'Information' && <Information cate={cate} />}
                 {cate?.name === 'candidate' && <ReCandidate cate={cate} />}
