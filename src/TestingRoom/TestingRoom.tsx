@@ -8,7 +8,7 @@ import moment from 'moment';
 import Duration from './Duration';
 import InCharger from './InCharger';
 import { useDispatch, useSelector } from 'react-redux';
-import { PropsTestingDataRD, setEnd, setStartRD } from '../redux/testingData';
+import { PropsTestingDataRD, setDelCalcul, setEnd, setResetAll, setStartRD } from '../redux/testingData';
 import { LoadingI } from '../assets/Icons/Icons';
 import Result from './Result';
 import { PropsUserDataRD } from '../redux/userData';
@@ -25,6 +25,7 @@ export interface PropsRoomData {
         Name: string;
         Gender: number;
     };
+    userId: string;
     Cates: {
         $values: {
             CreatedAt: string;
@@ -145,9 +146,9 @@ const TestingRoom = () => {
     ];
     useEffect(() => {
         async function fetch() {
-            if (code) {
+            if (code && user) {
                 setLoading(true);
-                const res: PropsRoomData | string = await roomAPI.getRoom(code);
+                const res: PropsRoomData | string = await roomAPI.getRoom(code, user?.id);
                 if (typeof res !== 'string') {
                     setCatePart(cateP);
                     setRoomData(res);
@@ -166,6 +167,7 @@ const TestingRoom = () => {
             setLoading(true);
             const res: PropsRoomData | string = await roomAPI.getRoom(code, user?.id);
             if (typeof res !== 'string') {
+                dispatch(setDelCalcul());
                 setCatePart(res?.Cates.$values[0].Id);
                 setRoomData(res);
                 setEmpty('');
@@ -185,7 +187,9 @@ const TestingRoom = () => {
         setOpen(false);
     };
     console.log(start, 'start');
-
+    useEffect(() => {
+        if (start === 'end') dispatch(setResetAll());
+    }, [start]);
     return (
         <Div wrap="wrap" css="height: 92%; ">
             <Div
@@ -324,8 +328,9 @@ const TestingRoom = () => {
                 )}
                 {start === 'start' && <Duration time={3} setStart={setStart} />}
                 {start === 'inCharger' && roomData && (
-                    <InCharger roomData={roomData} catePart={catePart} setCatePart={setCatePart} />
+                    <InCharger roomData={roomData} catePart={catePart} setCatePart={setCatePart} setStart={setStart} />
                 )}
+                {}
             </Div>
         </Div>
     );

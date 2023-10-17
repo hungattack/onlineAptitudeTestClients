@@ -28,11 +28,13 @@ import questionHistoryAPI from '../API/questionHistoryAPI/questionHistoryAPI';
 import { PropsUserDataRD } from '../redux/userData';
 import { toast } from 'react-toastify';
 import Result from './Result';
+import candidateAPI from '../API/candidateAPI/candidateAPI';
 const InCharger: React.FC<{
     roomData: PropsRoomData;
+    setStart: React.Dispatch<React.SetStateAction<string>>;
     catePart: string; // first section
     setCatePart: React.Dispatch<React.SetStateAction<string>>;
-}> = ({ roomData, catePart, setCatePart }) => {
+}> = ({ roomData, catePart, setCatePart, setStart }) => {
     const dispatch = useDispatch();
     const { login, register, user } = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
         return state.persistedReducer.userData;
@@ -281,6 +283,262 @@ const InCharger: React.FC<{
             const ok = window.confirm('You want to submit this part?');
             if (ok) {
                 dispatch(setEnd({ id: catePart }));
+                let result: {
+                    catePartId: string;
+                    cateName: string;
+                    question: {
+                        correct: {
+                            id: string;
+                            name: string;
+                            type?: string;
+                            answer: string;
+                            pointAr: string;
+                            user: string | string[];
+                        }[];
+                        inCorrect: {
+                            id: string;
+                            name: string;
+                            answer: string;
+                            type?: string;
+                            pointAr: string;
+                            user: string | string[];
+                        }[];
+                    };
+                }[] = [];
+
+                let vl: {
+                    catePartId: string;
+                    cateName: string;
+                    question: {
+                        correct: {
+                            id: string;
+                            name: string;
+                            answer: string;
+                            pointAr: string;
+                            type?: string;
+                            user: string | string[];
+                        }[];
+                        inCorrect: {
+                            id: string;
+                            name: string;
+                            answer: string;
+                            pointAr: string;
+                            type?: string;
+                            user: string | string[];
+                        }[];
+                    };
+                } = { catePartId: '', cateName: '', question: { correct: [], inCorrect: [] } };
+                roomData.Cates.$values.map((c) => {
+                    if (c.Id === catePart) {
+                        console.log(c, 'val c');
+
+                        c.Questions.$values.map((q) => {
+                            console.log(q, 'val q', value, valueInput, choice);
+                            let check = false;
+                            value.map((v) => {
+                                if (v.id === q.Id && q.AnswerType === 'array' && JSON.parse(q.Answer).length === 1) {
+                                    check = true;
+                                    console.log(v, 'val VL');
+                                    vl.catePartId = catePart;
+                                    vl.cateName = c.Name;
+
+                                    if (
+                                        JSON.parse(q.Answer).some(
+                                            (an: { id: string; val: string }) => an.val === v.value && v.value,
+                                        )
+                                    ) {
+                                        if (!vl.question.correct.some((vll) => vll.id === v.id)) {
+                                            vl.question.correct.push({
+                                                id: q.Id,
+                                                name: q.QuestionName,
+                                                type: 'radio',
+                                                answer: q.Answer,
+                                                user: v.value,
+                                                pointAr: q.PointAr,
+                                            });
+                                        }
+                                    } else {
+                                        if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
+                                            vl.question.inCorrect.push({
+                                                id: q.Id,
+                                                name: q.QuestionName,
+                                                type: 'radio',
+                                                answer: q.Answer,
+                                                user: v.value,
+                                                pointAr: q.PointAr,
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                            choice.map((v) => {
+                                if (v.id === q.Id && q.AnswerType === 'array') {
+                                    check = true;
+                                    console.log(v, 'val C');
+                                    vl.catePartId = catePart;
+                                    vl.cateName = c.Name;
+                                    let po = 0;
+                                    const userA: string[] = [];
+                                    const userS: string[] = [];
+                                    const pointS: string[] = [];
+                                    const pointA: string[] = [];
+                                    JSON.parse(q.Answer).map((an: { id: string; val: string }, index: number) => {
+                                        if (v.value.some((val: string) => val === an.val)) {
+                                            console.log('oo11', an);
+
+                                            po += 1;
+                                            pointS.push(
+                                                JSON.parse(q.PointAr).filter((p: { id: string }) => p.id === an.id)[0],
+                                            );
+                                            userA.push(an.val);
+
+                                            if (!vl.question.correct.some((vll) => vll.id === v.id)) {
+                                                console.log(pointS, 'pointSoo');
+                                                vl.question.correct.push({
+                                                    id: q.Id,
+                                                    name: q.QuestionName,
+                                                    type: 'checkbox',
+                                                    answer: q.Answer,
+                                                    user: userA,
+                                                    pointAr: JSON.stringify(pointS),
+                                                });
+                                            } else {
+                                                vl.question.correct = vl.question.correct.map((c) => {
+                                                    if (c.id === v.id) {
+                                                        c.pointAr = JSON.stringify(pointS);
+                                                    }
+                                                    return c;
+                                                });
+                                            }
+                                        } else {
+                                            pointA.push(
+                                                JSON.parse(q.PointAr).filter((p: { id: string }) => p.id === an.id)[0],
+                                            );
+                                            userS.push(v.value.filter((val: string) => val === an.val)[0]);
+                                            if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
+                                                JSON.parse(q.AnswerArray).map((an: string) => {
+                                                    if (v.value.some((val) => val === an)) {
+                                                        po += 1;
+                                                    }
+                                                });
+                                                vl.question.inCorrect.push({
+                                                    id: q.Id,
+                                                    name: q.QuestionName,
+                                                    answer: q.Answer,
+                                                    type: 'checkbox',
+                                                    user: userS,
+                                                    pointAr: JSON.stringify(pointA),
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                            valueInput.map((v) => {
+                                if (v.id === q.Id && q.AnswerType === 'string') {
+                                    check = true;
+                                    console.log(v, 'val I');
+                                    vl.catePartId = catePart;
+                                    vl.cateName = c.Name;
+                                    if (v.value) {
+                                        vl.question.correct.push({
+                                            id: q.Id,
+                                            name: q.QuestionName,
+                                            type: 'input',
+                                            answer: q.Answer,
+                                            user: v.value,
+                                            pointAr: q.PointAr,
+                                        });
+                                    } else {
+                                        if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
+                                            vl.question.inCorrect.push({
+                                                id: q.Id,
+                                                type: 'input',
+                                                name: q.QuestionName,
+                                                answer: q.Answer,
+                                                user: v.value,
+                                                pointAr: q.PointAr,
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                            if (!check) {
+                                // if it doesn't exist
+                                if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
+                                    vl.question.inCorrect.push({
+                                        id: q.Id,
+                                        type: q.AnswerType,
+                                        name: q.QuestionName,
+                                        answer: q.Answer,
+                                        user: '',
+                                        pointAr: q.PointAr,
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    if (!result.length || (!result.some((va) => va.catePartId === vl?.catePartId) && vl?.catePartId)) {
+                        result.push(vl);
+                    }
+                });
+                console.log(result, 'val');
+                if (result.length && id_room) {
+                    let er = '';
+                    dispatch(
+                        setCalculate({
+                            idCate: catePart,
+                            point: result
+                                .filter((re) => re.catePartId === catePart)[0]
+                                .question.correct.reduce((calP, vl) => {
+                                    if (vl.type !== 'input') {
+                                        JSON.parse(vl.pointAr).map((po: { point: string }) => {
+                                            calP += Number(po.point);
+                                        });
+                                    }
+                                    return calP;
+                                }, 0),
+                            inCorrect: result.filter((re) => re.catePartId === catePart)[0].question.inCorrect.length,
+                            correct: result.filter((re) => re.catePartId === catePart)[0].question.correct.length,
+                        }),
+                    );
+                    console.log(calculatorRef.current, 'calculatorRef');
+                    if (user) {
+                        const total = roomData?.Cates.$values.reduce((a, ca) => {
+                            ca.Questions.$values.map((b) => {
+                                JSON.parse(b.PointAr).map((p: { id: string; point: number }) => {
+                                    a += Number(p.point);
+                                });
+                            });
+                            return a;
+                        }, 0);
+                        const res = await questionHistoryAPI.add(user.id, id_room, total);
+                        if (res)
+                            Promise.all(
+                                result.map(async (r, index) => {
+                                    const newAR = [...r.question.correct, ...r.question.inCorrect];
+                                    const res = await questionHistoryAPI.addResult(
+                                        user.id,
+                                        id_room,
+                                        catePart,
+                                        JSON.stringify({
+                                            correct: r.question.correct,
+                                            inCorrect: r.question.inCorrect,
+                                        }),
+                                    );
+                                    if (res?.status === 0) {
+                                        er = `Your part of ${r.cateName} has been written`;
+                                    } else if (res === 'ok' || res === 'reTest') {
+                                        er = `Result just had written`;
+                                    } else if (res?.status === 1) {
+                                        er = `Question History is empty`;
+                                    }
+                                    console.log(res, 'okkk');
+                                    if (result.length - 1 === index) toast(er);
+                                }),
+                            );
+                    }
+                }
                 if (roomData.Cates.$values[index + 1]) {
                     const { Id, TimeOut, TimeType } = roomData.Cates.$values[index + 1];
                     const startT = moment(moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'), 'YYYY-MM-DD HH:mm:ss');
@@ -289,270 +547,22 @@ const InCharger: React.FC<{
                         TimeOut < 2 ? (type === 'hours' ? 'hour' : type === 'minutes' ? 'minute' : 'second') : type;
                     const end = startT.add(TimeOut, newType);
 
-                    let result: {
-                        catePartId: string;
-                        cateName: string;
-                        question: {
-                            correct: {
-                                id: string;
-                                name: string;
-                                type?: string;
-                                answer: string;
-                                pointAr: string;
-                                user: string | string[];
-                            }[];
-                            inCorrect: {
-                                id: string;
-                                name: string;
-                                answer: string;
-                                type?: string;
-                                pointAr: string;
-                                user: string | string[];
-                            }[];
-                        };
-                    }[] = [];
-
-                    let vl: {
-                        catePartId: string;
-                        cateName: string;
-                        question: {
-                            correct: {
-                                id: string;
-                                name: string;
-                                answer: string;
-                                pointAr: string;
-                                type?: string;
-                                user: string | string[];
-                            }[];
-                            inCorrect: {
-                                id: string;
-                                name: string;
-                                answer: string;
-                                pointAr: string;
-                                type?: string;
-                                user: string | string[];
-                            }[];
-                        };
-                    } = { catePartId: '', cateName: '', question: { correct: [], inCorrect: [] } };
-                    roomData.Cates.$values.map((c) => {
-                        if (c.Id === catePart) {
-                            console.log(c, 'val c');
-
-                            c.Questions.$values.map((q) => {
-                                console.log(q, 'val q', value, valueInput, choice);
-                                let check = false;
-                                value.map((v) => {
-                                    if (
-                                        v.id === q.Id &&
-                                        q.AnswerType === 'array' &&
-                                        JSON.parse(q.Answer).length === 1
-                                    ) {
-                                        check = true;
-                                        console.log(v, 'val VL');
-                                        vl.catePartId = catePart;
-                                        vl.cateName = c.Name;
-
-                                        if (
-                                            JSON.parse(q.Answer).some(
-                                                (an: { id: string; val: string }) => an.val === v.value && v.value,
-                                            )
-                                        ) {
-                                            if (!vl.question.correct.some((vll) => vll.id === v.id)) {
-                                                vl.question.correct.push({
-                                                    id: q.Id,
-                                                    name: q.QuestionName,
-                                                    type: 'radio',
-                                                    answer: q.Answer,
-                                                    user: v.value,
-                                                    pointAr: q.PointAr,
-                                                });
-                                            }
-                                        } else {
-                                            if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
-                                                vl.question.inCorrect.push({
-                                                    id: q.Id,
-                                                    name: q.QuestionName,
-                                                    type: 'radio',
-                                                    answer: q.Answer,
-                                                    user: v.value,
-                                                    pointAr: q.PointAr,
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-                                choice.map((v) => {
-                                    if (v.id === q.Id && q.AnswerType === 'array') {
-                                        check = true;
-                                        console.log(v, 'val C');
-                                        vl.catePartId = catePart;
-                                        vl.cateName = c.Name;
-                                        let po = 0;
-                                        const userA: string[] = [];
-                                        const userS: string[] = [];
-                                        const pointS: string[] = [];
-                                        const pointA: string[] = [];
-                                        JSON.parse(q.Answer).map((an: { id: string; val: string }, index: number) => {
-                                            if (v.value.some((val: string) => val === an.val)) {
-                                                po += 1;
-                                                pointS.push(
-                                                    JSON.parse(q.PointAr).filter(
-                                                        (p: { id: string }) => p.id === an.id,
-                                                    )[0],
-                                                );
-                                                userA.push(an.val);
-                                                if (!vl.question.correct.some((vll) => vll.id === v.id)) {
-                                                    vl.question.correct.push({
-                                                        id: q.Id,
-                                                        name: q.QuestionName,
-                                                        type: 'checkbox',
-                                                        answer: q.Answer,
-                                                        user: userA,
-                                                        pointAr: JSON.stringify(pointS),
-                                                    });
-                                                }
-                                            } else {
-                                                pointA.push(
-                                                    JSON.parse(q.PointAr).filter(
-                                                        (p: { id: string }) => p.id === an.id,
-                                                    )[0],
-                                                );
-                                                userS.push(v.value.filter((val: string) => val === an.val)[0]);
-                                                if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
-                                                    JSON.parse(q.AnswerArray).map((an: string) => {
-                                                        if (v.value.some((val) => val === an)) {
-                                                            po += 1;
-                                                        }
-                                                    });
-                                                    vl.question.inCorrect.push({
-                                                        id: q.Id,
-                                                        name: q.QuestionName,
-                                                        answer: q.Answer,
-                                                        type: 'checkbox',
-                                                        user: userS,
-                                                        pointAr: JSON.stringify(pointA),
-                                                    });
-                                                }
-                                            }
-                                        });
-                                    }
-                                });
-                                valueInput.map((v) => {
-                                    if (v.id === q.Id && q.AnswerType === 'string') {
-                                        check = true;
-                                        console.log(v, 'val I');
-                                        vl.catePartId = catePart;
-                                        vl.cateName = c.Name;
-                                        if (v.value) {
-                                            vl.question.correct.push({
-                                                id: q.Id,
-                                                name: q.QuestionName,
-                                                type: 'input',
-                                                answer: q.Answer,
-                                                user: v.value,
-                                                pointAr: q.PointAr,
-                                            });
-                                        } else {
-                                            if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
-                                                vl.question.inCorrect.push({
-                                                    id: q.Id,
-                                                    type: 'input',
-                                                    name: q.QuestionName,
-                                                    answer: q.Answer,
-                                                    user: v.value,
-                                                    pointAr: q.PointAr,
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-                                if (!check) {
-                                    // if it doesn't exist
-                                    if (!vl.question.inCorrect.some((vll) => vll.id === q.Id)) {
-                                        vl.question.inCorrect.push({
-                                            id: q.Id,
-                                            type: q.AnswerType,
-                                            name: q.QuestionName,
-                                            answer: q.Answer,
-                                            user: '',
-                                            pointAr: q.PointAr,
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                        if (
-                            !result.length ||
-                            (!result.some((va) => va.catePartId === vl?.catePartId) && vl?.catePartId)
-                        ) {
-                            result.push(vl);
-                        }
-                    });
-                    console.log(result, 'val');
-                    if (result.length && id_room) {
-                        let er = '';
-                        dispatch(
-                            setCalculate({
-                                idCate: catePart,
-                                point: result
-                                    .filter((re) => re.catePartId === catePart)[0]
-                                    .question.correct.reduce((calP, vl) => {
-                                        if (vl.type !== 'input') {
-                                            JSON.parse(vl.pointAr).map((po: { point: string }) => {
-                                                calP += Number(po.point);
-                                            });
-                                        }
-                                        return calP;
-                                    }, 0),
-                                inCorrect: result.filter((re) => re.catePartId === catePart)[0].question.inCorrect
-                                    .length,
-                                correct: result.filter((re) => re.catePartId === catePart)[0].question.correct.length,
-                            }),
-                        );
-                        console.log(calculatorRef.current, 'calculatorRef');
-                        if (user) {
-                            const res = await questionHistoryAPI.add(user.id, id_room);
-                            if (res)
-                                result.map((r) => {
-                                    const newAR = [...r.question.correct, ...r.question.inCorrect];
-                                    Promise.all(
-                                        newAR.map(async (cr, index, ar) => {
-                                            const res = await questionHistoryAPI.addResult(
-                                                user.id,
-                                                id_room,
-                                                catePart,
-                                                cr,
-                                            );
-                                            if (res?.status === 0) {
-                                                er = `Your part of ${r.cateName} has been written`;
-                                            } else if (res === 'ok' || res === 'reTest') {
-                                                er = `Result just had written`;
-                                            } else if (res?.status === 1) {
-                                                er = `Question History is empty`;
-                                            }
-                                            console.log(res, 'okkk');
-                                            if (ar.length - 1 === index) toast(er);
-                                        }),
-                                    );
-                                });
-                        }
-                    }
-                    if (roomData.Cates.$values[index + 1]?.Questions.$values?.length) {
-                        dispatch(
-                            setStartRD({
-                                id_room: id_room,
-                                others: {
-                                    id: Id,
-                                    start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
-                                    end: end.format('YYYY-MM-DD HH:mm:ss'),
-                                    finish: false,
-                                },
-                            }),
-                        );
-                        setCatePart(roomData.Cates.$values[index + 1]?.Id);
-                    } else {
-                        dispatch(setResetAll());
-                    }
+                    dispatch(
+                        setStartRD({
+                            id_room: id_room,
+                            others: {
+                                id: Id,
+                                start: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
+                                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                                finish: false,
+                            },
+                        }),
+                    );
+                    setCatePart(roomData.Cates.$values[index + 1]?.Id);
+                    setIndex({ id: roomData.Cates.$values[index + 1].Questions.$values[0].Id, index: 0 });
+                } else {
+                    const res = await candidateAPI.finish(roomData.userId, user?.id);
+                    if (res === 'ok') setStart('end');
                 }
             }
         }
@@ -732,6 +742,7 @@ const InCharger: React.FC<{
                                     choice={choice}
                                     value={value}
                                     valueInput={valueInput}
+                                    setStart={setStart}
                                 />
                             );
                         }

@@ -66,6 +66,15 @@ class Candidate {
             return errorHandling(err);
         }
     };
+    finish = async (manaId: string, userId?: string) => {
+        try {
+            const response = await http.put(`/Candidate/Finish/${manaId}/${userId}`);
+            return response.data;
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
     generate = async (UserName: string, Password: string, occupationId: string, Id: number, userId?: string) => {
         try {
             const response = await http.put('/Candidate/Generate/', { UserName, Password, occupationId, userId, Id });

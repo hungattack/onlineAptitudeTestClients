@@ -49,6 +49,7 @@ import {
     AiOutlineLike,
     AiOutlineLoading3Quarters,
     AiOutlineMinus,
+    AiOutlineUndo,
 } from 'react-icons/ai';
 import { GiBurningBook, GiEarthAfricaEurope, GiEarthAmerica, GiEarthAsiaOceania, GiNewspaper } from 'react-icons/gi';
 import {
@@ -125,3 +126,4 @@ export const ActiveI = () => <GoDotFill />;
 export const SuitCaseI = () => <MdWork />;
 export const TimeOutI = () => <MdTimerOff />;
 export const DuraI = () => <IoIosTimer />;
+export const ReTestI = () => <AiOutlineUndo />;

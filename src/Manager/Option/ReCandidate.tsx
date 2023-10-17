@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Div, H3, InputA, P } from '../../styleComponent/styleComponent';
-import { Space, Table } from 'antd';
+import { Button, Space, Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { AddI } from '../../assets/Icons/Icons';
+import { AddI, ReTestI } from '../../assets/Icons/Icons';
 import { useQuery } from '@tanstack/react-query';
 import candidateAPI from '../../API/candidateAPI/candidateAPI';
 import { useSelector } from 'react-redux';
 import { PropsUserDataRD } from '../../redux/userData';
 import { toast } from 'react-toastify';
+import questionHistoryAPI from '../../API/questionHistoryAPI/questionHistoryAPI';
 interface DataType {
     id: number;
     index: number;
@@ -22,8 +23,9 @@ interface DataType {
     phoneNumber: string;
     userName: string;
     userId: string;
+    reTest: boolean;
     password: string;
-    start: boolean;
+    start: string;
     occupation: {
         name: string;
     };
@@ -52,6 +54,7 @@ type PropsListExams = {
         UpdatedAt: string;
         occupation: { $id: string; Id: string; Name: string };
         occupationId: string;
+        pointAll: number;
         userId: string;
     }[];
 };
@@ -278,30 +281,74 @@ const ReCandidate: React.FC<{
                     `}
                     onClick={() => setListExams(undefined)}
                 >
-                    {listExams.$values.map((l) => {
-                        const point = l.Results.$values.reduce((v, vl) => {
-                            console.log(JSON.parse(vl.Answer), 'JSON.parse(JSON.parse(vl.Answer)');
-                            JSON.parse(JSON.parse(vl.Answer).pointAr).map((r: { id: string; point: string }) => {
-                                v += Number(r.point);
-                            });
-                            return v;
-                        }, 0);
-                        return (
-                            <Div
-                                width="70%"
-                                css={`
-                                    height: 70%;
-                                    border-radius: 5px;
-                                    background-color: #333;
-                                `}
-                            >
-                                <Div wrap="wrap" css="h3{width: 100%;}">
-                                    <H3>{l.occupation.Name}</H3>
-                                    <P>{point}🎯</P>
+                    {listExams.$values.length ? (
+                        listExams.$values.map((l) => {
+                            const point = l.Results.$values.reduce((v, vl) => {
+                                console.log(JSON.parse(vl.Answer), 'JSON.parse(JSON.parse(vl.Answer)');
+                                JSON.parse(vl.Answer).correct.map((r: any) => {
+                                    if (r.type !== 'input')
+                                        JSON.parse(r.pointAr).map((po: { id: string; point: string }) => {
+                                            v += Number(po.point);
+                                        });
+                                });
+                                return v;
+                            }, 0);
+                            return (
+                                <Div
+                                    width="70%"
+                                    css={`
+                                        height: 70%;
+                                        border-radius: 5px;
+                                        background-color: #333;
+                                    `}
+                                >
+                                    <Div
+                                        wrap="wrap"
+                                        css={`
+                                            padding: 5px;
+                                            background-color: #4c4c4c;
+                                            h3 {
+                                                width: 100%;
+                                            }
+                                            position: relative;
+                                        `}
+                                    >
+                                        <H3>{l.occupation.Name}</H3>
+                                        <P>
+                                            {point} / {l.pointAll}🎯
+                                        </P>
+                                        <Div
+                                            width="auto"
+                                            css={`
+                                                position: absolute;
+                                                top: 5px;
+                                                right: 10px;
+                                            `}
+                                            onClick={async () => {
+                                                const res = await questionHistoryAPI.delete(
+                                                    l.occupationId,
+                                                    l.userId,
+                                                    user?.id,
+                                                );
+                                                if (res === 'ok') {
+                                                    const res: PropsListExams = await candidateAPI.getExams(
+                                                        l.userId,
+                                                        user?.id,
+                                                    );
+                                                    if (res) setListExams(res);
+                                                    toast('Delete successfully!');
+                                                }
+                                            }}
+                                        >
+                                            <Button type="primary">Delete</Button>
+                                        </Div>
+                                    </Div>
                                 </Div>
-                            </Div>
-                        );
-                    })}
+                            );
+                        })
+                    ) : (
+                        <P color="red">Empty</P>
+                    )}
                 </Div>
             )}
             <H3 css="width: 97%; margin: 10px; color: #f2f2f2f7;"> {cate?.jobName}</H3>
@@ -372,6 +419,11 @@ const ReCandidate: React.FC<{
                         <h4>Password:</h4>
                         <P>{d.password}</P>
                     </Div>
+                    {cate.id === 'register' && d.start === 'starting' && !d.reTest && (
+                        <Div justify="left">
+                            <Button>Retest</Button>
+                        </Div>
+                    )}
                     <Div wrap="wrap" width="70%" justify="left" css="margin-top: 10px; input{margin: 0 5px;}">
                         {generate === d.id && !d.userName && !d.password && (
                             <Div css="margin-top: 10px; input{margin: 0 5px;}">

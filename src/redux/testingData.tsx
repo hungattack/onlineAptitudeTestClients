@@ -115,10 +115,14 @@ const testingData = createSlice({
             state.status = false;
             state.canProcess = [];
         },
+        setDelCalcul: (state) => {
+            state.calculate = [];
+        },
     },
 });
 export const {
     setCateP,
+    setDelCalcul,
     setResetAll,
     setCalculate,
     setStartRD,
