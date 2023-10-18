@@ -14,22 +14,12 @@ const Header = () => {
 
     const [show, setShow] = useState<boolean>(false);
     const [color, setColor] = useState<string>('/');
-    const [menu, setMenu] = useState(() =>
-        user
-            ? [
-                  { src: '/', name: 'Home' },
-                  { src: '/testing', name: 'Testing room' },
-              ]
-            : [
-                  { src: '/', name: 'Home' },
-                  { src: '/testing', name: 'Testing room' },
-              ],
-    );
+    const [menu, setMenu] = useState(() => (user ? [{ src: '/', name: 'Home' }] : [{ src: '/', name: 'Home' }]));
     useEffect(() => {
         if (user) {
             let check = false;
             menu.forEach((item) => {
-                if (['Manager', 'Register manager', 'roof'].includes(item.name)) {
+                if (['Manager', 'Register manager', 'roof', 'testing'].includes(item.name)) {
                     check = true;
                 }
             });
@@ -40,6 +30,7 @@ const Header = () => {
                         src: user?.roles.name === 'admin' ? '/manager' : '/regManager/',
                         name: user?.roles.name === 'admin' ? 'Manager' : 'Register manager',
                     },
+                    { src: '/testing', name: 'Testing room' },
                 ]);
                 if (user.roles.name === 'roof') {
                     menu.push({
@@ -49,10 +40,7 @@ const Header = () => {
                 }
             }
         } else {
-            setMenu([
-                { src: '/', name: 'Home' },
-                { src: '/testing', name: 'Testing room' },
-            ]);
+            setMenu([{ src: '/', name: 'Home' }]);
         }
     }, [user]);
     console.log(user, 'user');

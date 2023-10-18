@@ -6,6 +6,8 @@ import occupationAPI from '../../API/occupationAPI/occupationAPI';
 import { toast } from 'react-toastify';
 import { useQuery } from '@tanstack/react-query';
 import { MinusI } from '../../assets/Icons/Icons';
+import { PropsUserDataRD } from '../../redux/userData';
+import { useSelector } from 'react-redux';
 const layout = {
     labelCol: { span: 8 },
     wrapperCol: { span: 16 },
@@ -31,6 +33,9 @@ const Information: React.FC<{
         jobName?: string;
     };
 }> = ({ cate }) => {
+    const user = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
+        return state.persistedReducer.userData.user;
+    });
     const [add, setAdd] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [name, setName] = useState<string>(cate.jobName ?? '');
@@ -51,9 +56,9 @@ const Information: React.FC<{
         },
     });
     const onFinish = async ({
-        user,
+        users,
     }: {
-        user: {
+        users: {
             occupationId: string;
             introduction: string;
             position: string;
@@ -65,21 +70,23 @@ const Information: React.FC<{
         };
     }) => {
         setLoading(true);
-        user.occupationId = cate.id;
+        users.occupationId = cate.id;
 
-        const res = await occupationAPI.addInfo(user);
-        if (res === 'ok') {
-            toast('Add Information successful');
-            refetch();
-            setAdd(false);
+        if (user) {
+            const res = await occupationAPI.addInfo(users, user.id);
+            if (res === 'ok') {
+                toast('Add Information successful');
+                refetch();
+                setAdd(false);
+            }
+            setLoading(false);
         }
-        setLoading(false);
     };
     const handleDelete = async (id: number) => {
         setLoading(true);
         const del = window.confirm('Do you want to delete this item');
-        if (del && data) {
-            const res = await occupationAPI.deleteInfo(id, cate.id);
+        if (del && data && user) {
+            const res = await occupationAPI.deleteInfo(id, cate.id, user.id);
             if (res === 'ok') {
                 toast('Add Infomation successful');
                 refetch();
@@ -228,32 +235,32 @@ const Information: React.FC<{
                             style={{ width: '90%' }}
                             validateMessages={validateMessages}
                             initialValues={{
-                                user: {
+                                users: {
                                     position: name, // Set the initial value for the 'position' field
                                 },
                             }}
                         >
-                            <Form.Item name={['user', 'position']} label="Position" required>
+                            <Form.Item name={['users', 'position']} label="Position" required>
                                 <Input type="text" placeholder="Position" required maxLength={50} />
                             </Form.Item>
-                            <Form.Item name={['user', 'address']} label="Address" required>
+                            <Form.Item name={['users', 'address']} label="Address" required>
                                 <Input type="text" placeholder="Address" required maxLength={50} />
                             </Form.Item>
-                            <Form.Item name={['user', 'company']} label="Company" required>
+                            <Form.Item name={['users', 'company']} label="Company" required>
                                 <Input type="text" placeholder="Company" required maxLength={50} />
                             </Form.Item>{' '}
-                            <Form.Item name={['user', 'contact']} label="Contact" required>
-                                <Form.Item name={['user', 'name']} label="Name" required>
+                            <Form.Item name={['users', 'contact']} label="Contact" required>
+                                <Form.Item name={['users', 'name']} label="Name" required>
                                     <Input type="text" placeholder="Name" required maxLength={50} />
                                 </Form.Item>
-                                <Form.Item name={['user', 'contact']} label="Contact" required>
+                                <Form.Item name={['users', 'contact']} label="Contact" required>
                                     <Input type="text" placeholder="Contact" required maxLength={50} />
                                 </Form.Item>
                             </Form.Item>
-                            <Form.Item name={['user', 'introduction']} label="Introduction" required>
+                            <Form.Item name={['users', 'introduction']} label="Introduction" required>
                                 <Input.TextArea placeholder="Introduction" required maxLength={500} />
                             </Form.Item>
-                            <Form.Item name={['user', 'requirement']} label="Requirement" required>
+                            <Form.Item name={['users', 'requirement']} label="Requirement" required>
                                 <Input.TextArea placeholder="Requirement" required maxLength={500} />
                             </Form.Item>
                             <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 2 }}>

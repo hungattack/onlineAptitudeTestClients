@@ -40,25 +40,28 @@ class Occupation {
             return errorHandling(err);
         }
     };
-    deleteInfo = async (id: number, occupationId: string) => {
+    deleteInfo = async (id: number, occupationId: string, managerId: string) => {
         try {
-            const response = await http.delete(`/Occupation/DeleteInfo/${id}/${occupationId}`);
+            const response = await http.delete(`/Occupation/DeleteInfo/${id}/${occupationId}/${managerId}`);
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;
             return errorHandling(err);
         }
     };
-    addInfo = async (Info: {
-        occupationId: string;
-        introduction: string;
-        position: string;
-        address: string;
-        company: string;
-        contact: string;
-        name: string;
-        requirement: string;
-    }) => {
+    addInfo = async (
+        Info: {
+            occupationId: string;
+            introduction: string;
+            position: string;
+            address: string;
+            company: string;
+            contact: string;
+            name: string;
+            requirement: string;
+        },
+        manaId: string,
+    ) => {
         try {
             const response = await http.post(`/Occupation/AddInfo`, {
                 OccupationId: Info.occupationId,
@@ -69,6 +72,7 @@ class Occupation {
                 Contact: Info.contact,
                 Name: Info.name,
                 Requirement: Info.requirement,
+                managerId: manaId,
             });
             return response.data;
         } catch (error) {

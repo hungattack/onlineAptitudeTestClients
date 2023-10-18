@@ -16,7 +16,7 @@ const Jobs = () => {
         return state.persistedReducer.userData.user;
     });
     const [objectFit, setObjectFit] = useState<string>('');
-    const [apply, setApply] = useState<string>('');
+    const [apply, setApply] = useState<{ manaId: string; candidateId: string } | undefined>();
     const MyFormItemContext = React.createContext<(string | number)[]>([]);
 
     interface MyFormItemGroupProps {
@@ -50,6 +50,7 @@ const Jobs = () => {
                 id: string;
                 infos: {
                     id: number;
+                    managerId: string;
                     introduction: string;
                     position: string;
                     address: string;
@@ -57,6 +58,7 @@ const Jobs = () => {
                     contact: string;
                     name: string;
                     requirement: string;
+                    occupationId: string;
                 }[];
                 name: string;
                 updatedAt: string;
@@ -91,8 +93,8 @@ const Jobs = () => {
         ) {
             const res: string = await candidateAPI.add({
                 userId: user.id,
-                managerId: apply,
-                occupationId: data[0].id,
+                managerId: apply.manaId,
+                occupationId: apply.candidateId,
                 Name: value.user.Name,
                 Email: value.user.Email,
                 PhoneNumber: value.user.PhoneNumber,
@@ -133,7 +135,7 @@ const Jobs = () => {
                             border-radius: 5px;
                         }
                     `}
-                    onClick={() => setApply('')}
+                    onClick={() => setApply(undefined)}
                 >
                     <Form
                         name="form_item_path"
@@ -194,7 +196,7 @@ const Jobs = () => {
                                 border-radius: 5px;
                                 cursor: var(--pointer);
                                 ${objectFit === o.id
-                                    ? 'z-index: 1; position: absolute; overflow: overlay; height: 88%; top: 50%; left: 50%; right: 50%; translate: -50% -50%; width: 50%; }'
+                                    ? 'z-index: 1; position: absolute; overflow: overlay;  top: 50%; left: 50%; right: 50%; translate: -50% -50%; width: 50%; }'
                                     : ''}
                             `}
                             wrap="wrap"
@@ -217,7 +219,7 @@ const Jobs = () => {
                                         }
                                     `}
                                 >
-                                    <Image src={Images.male} />
+                                    <Image src={o.user.gender ? Images.female : Images.male} />
                                 </Div>
                                 <P size="1.4rem">{o.user.name}</P>
                                 <Buttons
@@ -226,7 +228,10 @@ const Jobs = () => {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setObjectFit('');
-                                        setApply('28644857-9bd2-4acc-9033-e27510d0e429');
+                                        setApply({
+                                            manaId: o.infos[0].managerId,
+                                            candidateId: o.infos[0].occupationId,
+                                        });
                                     }}
                                 >
                                     Apply

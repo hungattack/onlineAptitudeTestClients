@@ -18,6 +18,15 @@ class Candidate {
             return errorHandling(err);
         }
     };
+    getType = async (type: string) => {
+        try {
+            const response = await http.get(`/Candidate/ListingCate/${type}`);
+            return response.data;
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
     getExams = async (userId: string, manaId?: string) => {
         try {
             const response = await http.get(`/ResultHistory/ListingExams/${userId}/${manaId}`);
@@ -84,18 +93,40 @@ class Candidate {
             return errorHandling(err);
         }
     };
-    generate = async (UserName: string, Password: string, occupationId: string, Id: number, userId?: string) => {
+    generate = async (
+        UserName: string,
+        Password: string,
+        occupationId: string,
+        Id: number,
+        note: string,
+        userId: string,
+        manaId?: string,
+    ) => {
         try {
-            const response = await http.put('/Candidate/Generate/', { UserName, Password, occupationId, userId, Id });
+            const response = await http.put('/Candidate/Generate/', {
+                UserName,
+                Password,
+                occupationId,
+                userId,
+                Id,
+                Note: note,
+                managerId: manaId,
+            });
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;
             return errorHandling(err);
         }
     };
-    login = async (UserName: string, Password: string, occupationId?: string) => {
+    login = async (UserName: string, Password: string, occupationId?: string, managerId?: string, userId?: string) => {
         try {
-            const response = await http.post('/Candidate/Login', { UserName, Password, occupationId });
+            const response = await http.post('/Candidate/Login', {
+                UserName,
+                Password,
+                occupationId,
+                managerId,
+                userId,
+            });
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;

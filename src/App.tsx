@@ -34,9 +34,10 @@ function App() {
             <Header />
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/testing" element={<TestingRoom />} />
+
                 {user && (
                     <>
+                        <Route path="/testing" element={<TestingRoom />} />
                         {user.roles.name === 'admin' ? (
                             <>
                                 <Route path="/manager" element={<Manager />} />

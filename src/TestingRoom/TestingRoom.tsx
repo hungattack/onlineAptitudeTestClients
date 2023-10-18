@@ -70,7 +70,13 @@ const TestingRoom = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const onFinish = async (values: any) => {
         dispatch(setEnd({ id: catePart }));
-        const res = await candidateAPI.login(values.username, values.password, roomData?.Id);
+        const res = await candidateAPI.login(
+            values.username,
+            values.password,
+            roomData?.Id,
+            roomData?.user.Id,
+            user?.id,
+        );
         if (res === true) {
             if (roomData) {
                 roomData.Cates.$values.forEach((c) => {
