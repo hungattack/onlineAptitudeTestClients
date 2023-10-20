@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Div, H3, InputA, P } from '../../styleComponent/styleComponent';
 import { Button, Space, Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
@@ -10,6 +10,7 @@ import { PropsUserDataRD } from '../../redux/userData';
 import { toast } from 'react-toastify';
 import questionHistoryAPI from '../../API/questionHistoryAPI/questionHistoryAPI';
 import TextArea from 'antd/es/input/TextArea';
+import Input from 'antd/es/input/Input';
 interface DataType {
     id: number;
     index: number;
@@ -27,6 +28,7 @@ interface DataType {
     userId: string;
     reTest: boolean;
     password: string;
+    updatedAt: string;
     start: string;
     occupation: {
         name: string;
@@ -70,6 +72,7 @@ const ReCandidate: React.FC<{
     const { user } = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
         return state.persistedReducer.userData;
     });
+    const [search, setSearch] = useState<string>('');
     const [account, setAccount] = useState<{ userName: string; password: string; note: string }>({
         userName: '',
         password: '',
@@ -83,12 +86,20 @@ const ReCandidate: React.FC<{
     const [generate, setGenerate] = useState<number | undefined>();
     const [listExams, setListExams] = useState<PropsListExams | undefined>();
     console.log(cate, 'cate');
-
+    useEffect(() => {
+        setSearch('');
+    }, [cate]);
     const { data, refetch } = useQuery({
         queryKey: [cate.id, 1],
+        enabled: search ? false : true,
         queryFn: async () => {
-            const rs: DataType[] = await candidateAPI.get(cate.id, user?.id);
-            return rs;
+            if (search) {
+                const res: DataType[] = await candidateAPI.searchByName(search, cate.id, user?.id);
+                return res;
+            } else {
+                const rs: DataType[] = await candidateAPI.get(cate.id, user?.id);
+                return rs;
+            }
         },
     });
     const handleLogin = async (id: number, occupationId: string, userId: string) => {
@@ -124,8 +135,37 @@ const ReCandidate: React.FC<{
         }
         setErr({ ...check });
     };
+    const handleSearch = async () => {
+        refetch();
+    };
     return (
         <Div display="block" css="overflow-x: overlay; background-color: #272727; position: relative; ">
+            <Div
+                justify="left"
+                css={`
+                    height: 48px;
+                    background-image: linear-gradient(355deg, #31656b, #393939);
+                    input {
+                        width: 40%;
+                        background-color: #3d3d3d;
+                        color: #fff !important;
+                    }
+                    button {
+                        margin-left: 5px;
+                        color: #fff !important;
+                    }
+                `}
+            >
+                <Input
+                    type="text"
+                    placeholder="Search room by code"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+                <Button type="primary" onClick={handleSearch}>
+                    Search
+                </Button>
+            </Div>
             {listExams && (
                 <Div
                     css={`
@@ -295,6 +335,10 @@ const ReCandidate: React.FC<{
                                 <Div justify="left">
                                     <h4>Password:</h4>
                                     <P>{d.password}</P>
+                                </Div>{' '}
+                                <Div justify="left">
+                                    <h4>End of login:</h4>
+                                    <P>{d.updatedAt}</P>
                                 </Div>
                                 <Div justify="left">
                                     <h4>Note:</h4>
@@ -313,9 +357,11 @@ const ReCandidate: React.FC<{
                                         </Button>
                                     </Div>
                                 ) : (
-                                    <Button type="primary" onClick={() => setGenerate(d.id)}>
-                                        Update generation
-                                    </Button>
+                                    cate.id === 'register' && (
+                                        <Button type="primary" onClick={() => setGenerate(d.id)}>
+                                            Update generation
+                                        </Button>
+                                    )
                                 )}
                             </>
                         )}

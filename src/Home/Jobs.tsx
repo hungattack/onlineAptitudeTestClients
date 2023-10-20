@@ -18,6 +18,7 @@ const Jobs = () => {
     const [objectFit, setObjectFit] = useState<string>('');
     const [apply, setApply] = useState<{ manaId: string; candidateId: string } | undefined>();
     const MyFormItemContext = React.createContext<(string | number)[]>([]);
+    const [search, setSearch] = useState<string>('');
 
     interface MyFormItemGroupProps {
         prefix: string | number | (string | number)[];
@@ -42,7 +43,8 @@ const Jobs = () => {
         return <Form.Item name={concatName} {...props} />;
     };
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, refetch } = useQuery({
+        enabled: search ? false : true,
         queryKey: ['JobApplying', 1],
         queryFn: async () => {
             const result: {
@@ -64,7 +66,7 @@ const Jobs = () => {
                 updatedAt: string;
                 user: { id: string; gender: boolean; name: string };
                 userId: string;
-            }[] = await occupationAPI.getInfoListing();
+            }[] = await occupationAPI.getInfoListing(search ? search : null);
             console.log(result, 'result');
 
             return result;
@@ -108,6 +110,32 @@ const Jobs = () => {
     };
     return (
         <Div wrap="wrap" css="padding-left: 7px; height: 100%; color: #313131;">
+            <Div
+                justify="left"
+                css={`
+                    height: 48px;
+                    background-image: linear-gradient(355deg, #31656b, #393939);
+                    input {
+                        width: 40%;
+                        background-color: #3d3d3d;
+                        color: #fff !important;
+                    }
+                    button {
+                        margin-left: 5px;
+                        color: #fff !important;
+                    }
+                `}
+            >
+                <Input
+                    type="text"
+                    placeholder="Search room by code"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+                <Button type="primary" onClick={() => refetch()}>
+                    Search
+                </Button>
+            </Div>
             <H3
                 css={`
                     color: #fff;
@@ -185,7 +213,7 @@ const Jobs = () => {
                     <DivLoading>
                         <LoadingI />
                     </DivLoading>
-                ) : (
+                ) : data?.length ? (
                     data?.map((o, index) => (
                         <Div
                             key={o.id}
@@ -339,6 +367,8 @@ const Jobs = () => {
                             </Div>
                         </Div>
                     ))
+                ) : (
+                    <P color="red">empty</P>
                 )}
             </Div>
         </Div>

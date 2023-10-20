@@ -80,9 +80,9 @@ class Occupation {
             return errorHandling(err);
         }
     };
-    getInfoListing = async () => {
+    getInfoListing = async (name?: string | null) => {
         try {
-            const response = await http.get(`/Occupation/GetListing`);
+            const response = await http.get(`/Occupation/GetListing/${name}`);
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;

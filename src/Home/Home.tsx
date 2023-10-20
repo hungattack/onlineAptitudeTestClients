@@ -9,7 +9,7 @@ export default function Home() {
             </Div>
             {/* <div className={styles.box}>success Job seeker</div>
             <div className={styles.box}>The top Candidates have the highest point</div> */}
-            <Div width="50%" css="background-color: #323232; height: 100%; padding: 10px 20px">
+            <Div width="50%" css="background-color: #323232; height: 100%; padding: 10px 20px;overflow-y: overlay;">
                 <CandidateResult />
             </Div>
         </Div>

@@ -133,5 +133,14 @@ class Candidate {
             return errorHandling(err);
         }
     };
+    searchByName = async (name: string, cate: string, manaId?: string) => {
+        try {
+            const response = await http.get(`/Candidate/SearchByName/${name}/${cate}/${manaId}`);
+            return response.data;
+        } catch (error) {
+            const err: any = error as AxiosError;
+            return errorHandling(err);
+        }
+    };
 }
 export default new Candidate();

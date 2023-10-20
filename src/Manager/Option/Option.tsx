@@ -102,7 +102,6 @@ const Option: React.FC<{
         title: 'Candidates',
         icon: <UserI />,
         position: [
-            { id: 'all', name: 'All candidates' },
             { id: 'register', name: 'Candidates register' },
             { id: 'finish', name: 'Candidates finished' },
         ],
