@@ -31,9 +31,9 @@ class Occupation {
             return errorHandling(err);
         }
     };
-    delete = async (id: string) => {
+    delete = async (id: string, userId?: string) => {
         try {
-            const response = await http.delete(`/Occupation/Delete/${id}`);
+            const response = await http.delete(`/Occupation/Delete/${id}/${userId}`);
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;

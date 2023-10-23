@@ -24,19 +24,21 @@ const Header = () => {
                 }
             });
             if (!check) {
-                setMenu([
-                    ...menu,
-                    {
-                        src: user?.roles.name === 'admin' ? '/manager' : '/regManager/',
-                        name: user?.roles.name === 'admin' ? 'Manager' : 'Register manager',
-                    },
-                    { src: '/testing', name: 'Testing room' },
-                ]);
                 if (user.roles.name === 'roof') {
                     menu.push({
                         src: 'roof',
                         name: 'Roof',
                     });
+                    setMenu(menu);
+                } else {
+                    setMenu([
+                        ...menu,
+                        {
+                            src: user?.roles.name === 'admin' ? '/manager' : '/regManager/',
+                            name: user?.roles.name === 'admin' ? 'Manager' : 'Register manager',
+                        },
+                        { src: '/testing', name: 'Testing room' },
+                    ]);
                 }
             }
         } else {

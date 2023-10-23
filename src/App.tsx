@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { Route, Routes } from 'react-router-dom';
@@ -13,12 +13,14 @@ import RegManager from './RegManager/RagManager';
 import { useQuery } from '@tanstack/react-query';
 import userAPI from './API/userAPI/userAPI';
 import TestingRoom from './TestingRoom/TestingRoom';
+import Roof, { DataType } from './Roof/Roof';
 
 function App() {
     const dispatch = useDispatch();
     const { login, register, user } = useSelector((state: { persistedReducer: { userData: PropsUserDataRD } }) => {
         return state.persistedReducer.userData;
     });
+    const dataRR = useRef<string>('');
     const { data } = useQuery({
         queryKey: ['user', 1],
         enabled: user?.id ? true : false,
@@ -38,6 +40,9 @@ function App() {
                 {user && (
                     <>
                         <Route path="/testing" element={<TestingRoom />} />
+                        {user.roles.name === 'roof' && (
+                            <Route path="/roof" element={<Roof user={user} dataRR={dataRR} />} />
+                        )}
                         {user.roles.name === 'admin' ? (
                             <>
                                 <Route path="/manager" element={<Manager />} />

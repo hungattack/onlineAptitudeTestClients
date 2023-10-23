@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { PropsUserDataRD } from '../../redux/userData';
 import occupationAPI from '../../API/occupationAPI/occupationAPI';
 import { Buttons, Div, DivLoading, P } from '../../styleComponent/styleComponent';
+import { toast } from 'react-toastify';
 export interface PropsOccupationData {
     Id: string;
     userId: string;
@@ -121,11 +122,11 @@ const Option: React.FC<{
                       active: boolean;
                       requirements: (
                           | {
-                                title: string;
+                                title: string; // for info
                                 val?: undefined;
                             }
                           | {
-                                title: string;
+                                title: string; // for question
                                 val: { id: string; name: string }[];
                             }
                       )[];
@@ -202,7 +203,7 @@ const Option: React.FC<{
                 return d;
             });
             const asd = dataQue.map((d) => {
-                d.Cates.$values.map((c) => {
+                d.Cates?.$values?.map((c) => {
                     reChange.forEach((re) => {
                         if (
                             typeof re.val === 'number' &&
@@ -257,23 +258,31 @@ const Option: React.FC<{
                           timeType: string;
                           updatedAt: string;
                       };
+                      status: number;
+                      message: string;
                   }
                 | string = await catePartsAPI.addCatePart(id, cate);
-            console.log(res, 'res');
             if (typeof res === 'string') {
                 setErr({ id, value: res });
                 setCate('');
                 setLoading(false);
             } else {
-                if (res?.cate.id) {
-                    setData((pre) =>
-                        pre.map((t) => {
+                if (res.status === 0) {
+                    toast(res.message);
+                    console.log(res, 'res');
+                } else {
+                    if (res?.cate.id) {
+                        const tr = datas.map((t) => {
                             // check Does it already exist or not?
                             t.position.map((p) => {
-                                if (!(p.id === res.cate.id || p.title === cate)) {
+                                if (p.id === res.cate.occupationId) {
                                     return p.requirements.map((req) => {
                                         if (req.title === 'Question') {
-                                            req.val?.push({ id: res.cate.id, name: cate });
+                                            if (!req.val?.length) {
+                                                req.val = [{ id: res.cate.id, name: cate }];
+                                            } else {
+                                                req.val?.unshift({ id: res.cate.id, name: cate });
+                                            }
                                             return req;
                                         }
                                     });
@@ -282,38 +291,64 @@ const Option: React.FC<{
                             });
 
                             return t;
-                        }),
-                    );
-                    let check = false;
-                    dataQue.map((d) => {
-                        d.Cates.$values.map((c) => {
-                            if (c.Id === res.cate.id) {
-                                check = true;
-                            }
                         });
-                    });
-                    if (!check) {
-                        const newDataQue = dataQue.map((d) => {
-                            if (d.Id === id) {
-                                d.Cates.$values.push({
-                                    Id: res.cate.id,
-                                    Name: res.cate.name,
-                                    OccupationId: res.cate.occupationId,
-                                    TimeOut: res.cate.timeOut,
-                                    TimeType: res.cate.timeType,
-                                    CreatedAt: res.cate.createdAt,
-                                    UpdatedAt: res.cate.updatedAt,
-                                });
-                            }
-                            return d;
+                        setData(tr);
+                        let check = false;
+
+                        dataQue.map((d) => {
+                            d.Cates?.$values.map((c) => {
+                                if (c.Id === res.cate.id) {
+                                    check = true;
+                                }
+                            });
                         });
-                        setDataQue(newDataQue); // add
+
+                        if (!check) {
+                            console.log('pre nooooooooooooo', dataQue);
+
+                            const newDataQue = dataQue.map((d) => {
+                                if (d.Id === id) {
+                                    if (!d.Cates) {
+                                        d.Cates = {
+                                            $id: res.cate.createdAt,
+                                            $values: [
+                                                {
+                                                    Id: res.cate.id,
+                                                    Name: res.cate.name,
+                                                    OccupationId: res.cate.occupationId,
+                                                    TimeOut: res.cate.timeOut,
+                                                    TimeType: res.cate.timeType,
+                                                    CreatedAt: res.cate.createdAt,
+                                                    UpdatedAt: res.cate.updatedAt,
+                                                },
+                                            ],
+                                        };
+                                    } else {
+                                        if (!d.Cates.$values.some((c) => c.Id === res.cate.id)) {
+                                            d.Cates?.$values.push({
+                                                Id: res.cate.id,
+                                                Name: res.cate.name,
+                                                OccupationId: res.cate.occupationId,
+                                                TimeOut: res.cate.timeOut,
+                                                TimeType: res.cate.timeType,
+                                                CreatedAt: res.cate.createdAt,
+                                                UpdatedAt: res.cate.updatedAt,
+                                            });
+                                        }
+                                    }
+                                }
+                                return d;
+                            });
+                            console.log('nooooooooooooo', newDataQue);
+
+                            setDataQue(newDataQue); // add
+                        }
+                        setCate('');
                     }
-                    setCate('');
-                    setLoading(false);
                 }
             }
         }
+        setLoading(false);
     };
     console.log(datas, 'datas');
     // if (p.title === jobShow) {
@@ -331,7 +366,11 @@ const Option: React.FC<{
     const handleDeleteCate = async (id: string, occupationId: string, name: string) => {
         const ok = window?.confirm(`Do you wanna delete ${name}?`);
         if (ok) {
-            const res = await catePartsAPI.delete(id, occupationId);
+            const res = await catePartsAPI.delete(id, occupationId, user?.id);
+            if (res?.status === 0) {
+                toast(res.message);
+                console.log(res, 'res');
+            }
             if (res?.id) {
                 setData((pre) =>
                     pre.filter((j) =>
@@ -354,7 +393,11 @@ const Option: React.FC<{
     const handleRemove = async (id: string, name: string) => {
         const ok = window?.confirm(`Do you wanna delete ${name}?`);
         if (ok) {
-            const res = await occupationAPI.delete(id);
+            const res = await occupationAPI.delete(id, user?.id);
+            if (res?.status === 0) {
+                toast(res.message);
+                console.log(res, 'res');
+            }
             if (res?.id) {
                 setData((pre) =>
                     pre.map((j) => {
@@ -498,7 +541,7 @@ const Option: React.FC<{
                                                                 pre === po.title + qs.title ? '' : po.title + qs.title,
                                                             );
                                                             dataQue?.forEach((d) => {
-                                                                d.Cates.$values.forEach((c) => {
+                                                                d.Cates?.$values.forEach((c) => {
                                                                     if (
                                                                         qs?.val &&
                                                                         c.Id === qs.val[0].id &&
@@ -553,7 +596,7 @@ const Option: React.FC<{
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     dataQue?.forEach((d) => {
-                                                                        d.Cates.$values.forEach((c) => {
+                                                                        d.Cates?.$values.forEach((c) => {
                                                                             if (
                                                                                 c.Id === v.id &&
                                                                                 JSON.stringify(c) !==

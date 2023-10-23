@@ -25,9 +25,9 @@ class CateParts {
             return errorHandling(err);
         }
     };
-    delete = async (id: string, occupationId: string) => {
+    delete = async (id: string, occupationId: string, userId?: string) => {
         try {
-            const response = await http.delete(`/CateParts/Delete/${id}/${occupationId}`);
+            const response = await http.delete(`/CateParts/Delete/${id}/${occupationId}/${userId}`);
             return response.data;
         } catch (error) {
             const err: any = error as AxiosError;

@@ -128,7 +128,7 @@ const Result: React.FC<{
             setCatePart(result.Name);
         }
     }, [result]);
-    const handleDelete = async (id: string) => {
+    const handleDeleteQs = async (id: string) => {
         const isDel = window.confirm('Are you sure you want to delete this data!');
         if (isDel) {
             const res = await questionAPI.delete(id, result.Id);
@@ -240,7 +240,7 @@ const Result: React.FC<{
                             cursor: var(--pointer);
                         `}
                         onClick={() => {
-                            if (record?.id) handleDelete(record.id);
+                            if (record?.id) handleDeleteQs(record.id);
                         }}
                     >
                         Delete
@@ -978,7 +978,7 @@ const Result: React.FC<{
                             cursor: var(--pointer);
                         `}
                         onClick={() => {
-                            if (record.id) handleDelete(record.id);
+                            if (record.id) handleDeleteQs(record.id);
                         }}
                     >
                         Delete
